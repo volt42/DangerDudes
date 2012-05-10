@@ -1,0 +1,17 @@
+@author Karl Marklund <karl.marklund@it.uu.se>
+@version 0.0.1
+@title Project Template
+@doc This is a small template Erlang project showing how to structure your project like this:
+
+ <dl> 	  
+   <dt><strong><span class="code">src</span></strong></dt> 
+      <dd>Erlang source code.</dd> 
+   <dt><strong><span class="code">ebin</span></strong></dt> 
+      <dd>Erlang object code, the <span class="code">beam</span> files.</dd>
+   <dt><strong><span class="code">include</span></strong></dt> 
+      <dd>Erlang include files (.hrl files).</dd> 
+  <dt><strong><span class="code">doc</span></strong></dt> 
+      <dd>Documentation.</dd> 
+ </dl> 
+
+
