@@ -1,5 +1,5 @@
 -module(router).
--export([router/0]).
+-export([run/2, send/2]).
 
 router() ->
     Sender = open_port({spawn, "C:/Python27/python -u sender.py"},
@@ -16,10 +16,12 @@ router() ->
 	port_command(Reciever, term_to_binary(7)),	%% test value 7 sent to reciever
     router(Sender, Reciever).					%% start the main loop
 	
-router(Sender, Reciever) ->
+run(Sender, Reciever) ->
 	io:put_chars("Running message passer\n"),
 	
     receive
+		{Pid, {send, Data}} ->
+			send(Reciever, Data)
         {Sender, {data, Binary}} ->
 			io:put_chars("Beam me up, Scotty!\n"),
 			<<_Check:8, Type:8, _Trash:8, Data/binary>> = Binary,
