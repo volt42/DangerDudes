@@ -1,0 +1,1 @@
+simpletest tar emot ett meddelande från erlang och oavsett dess innehåll skickar den tillbaka [0,130,243,179,54] (där nollan är kod för 'connect' och de andra värdena utgör en ip-adress) följt av 5 stycken [1, "hello"] där 1 är kod för 'send' och strängen bara är ett testvärde.

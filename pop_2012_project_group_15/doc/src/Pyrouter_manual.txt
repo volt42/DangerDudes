@@ -1,0 +1,36 @@
+Pyrouter används utifrån enbart med funktionen start/0.
+Tanken med modulen är att den skall sköta kommunikationen mellan klientscriptet i python och en erlangserver.
+
+runClient(ScriptName)
+startar ett pythonscript och returnerar porten som används för kommunikation med det.
+Simpel funktion som knappast lär behöva modifieras så mycket.
+
+start()
+Startar ett pythonscript (i nuläget simpletest) och kör sedan runOutFirst med porten till pythonscriptet och 2233 (porten som skall användas för nätvekskommunikation).
+Den här funktionen är work in progress. Skall ansvara för att starta upp klienten. En del funktionalitet saknas eller behöver ses över.
+	
+stop(Pid)
+Skickar atomen 'stop' till Pid.
+Används i princip inte alls.
+
+startIn(PortID, ScriptPort)
+Lyssnar på porten PortID (nätverk) och kör sedan runIn med den socket som fås när kommunikation upprättats samt ScriptPort. Ingen garanti för att den här fungerar som den borde.
+
+runIn(SenderSocket, RecieverPort)
+Kommunikaitonsloop för inkommande trafik från server. Något verkar fel här, men vad behöver utredas. Tanken är att den skall vänta på inkommande meddelanden från en server och vidarebefordra dem till python.
+
+runOutFirst(SenderPort, OutSocket)
+Startar upp kommunikationsloopen för utgående trafik (alltså från klientcriptet till servern). Den börjar med att skicka ett meddelande till pythonscriptet för att tala om vilken port python skall prata med. Därefter kör den igång kommunikationsloopel (runOut).
+Borde inte behöva mycket mer jobb.
+	
+runOut(SenderPort, OutSocket) 
+Den här funktionen skall ansvara för att ta emot meddelanden från python och vidarebefordra dem till servern. Den tycks fungera som den skall i grunden, men är att betrakta som ett work in progress. Stora ändringar bör dock göra med eftertänksamhet.
+	
+connect(Address, Port)
+Försöker skapa en uppkoppling till en adress (ip). Verkar fungera som den skall. Som test kör den just nu startIn för att få igång kommunikationen och vänta på input utifrån först efter att en uppkoppling existerar.
+
+forwardIn(Port, Data)
+Vidarebefordrar Data till det pythonscript kopplat till Port. Tycks fungera bra.
+
+forwardOut(Socket, Data)
+Vidarebefordrar Data till den server som är kopplad till Socket. Verkar fungera bra.
