@@ -12,34 +12,32 @@ runClient(ScriptName) ->
 
 start() ->
 	ScriptPort = runClient("simpletest.py"),	%% kickstart client script
-	ServerPort = 2233, %% Always listen to port 2233
-	
-	%% In = spawn(fun() -> startIn(ServerPort, ScriptPort) end),	%% start in channel (should recieve from server, currently just bounces messages)
-	%% Out = spawn(fun() -> runOut(ScriptPort, ServerPort) end),	%% start out channel (should forward to server, currently just bounces message)
-	%% Out ! {set_output, []}. %% send out port to python
-	%% Send in port to python (is this really needed?)
+	ServerPort = 2233, %% Talk through port 2233
 
-	runOutFirst(ScriptPort, ServerPort).
+	Socket = connect({127,0,0,1}, 2233),
+	
+	
+	
+	io:put_chars("Starting reciever\n"),
+	InPid = spawn(fun() -> runIn(Socket, ScriptPort) end),
+	gen_tcp:controlling_process(Socket, InPid),	%% Only one process can recieve data from the socket.
+	io:put_chars("Reciever ready\n"),
+
+	io:put_chars("Starting transmitter\n"),
+	runOutFirst(ScriptPort, Socket).
 	
 stop(Pid) ->
 	Pid ! stop.
 
-startIn(PortID, ScriptPort) ->
-	{ok, LSocket} = gen_tcp:listen(PortID, ?TCP_OPTIONS),
-	io:put_chars("incomming transmission\n"),
-	runIn(LSocket, ScriptPort).
-
 runIn(SenderSocket, RecieverPort) ->
-	io:put_chars("Reciever running\n"),
-	forwardOut(SenderSocket, "Hello!"),
-	io:put_chars("Awaiting reply\n"),
+	io:put_chars("Reciever ready and waiting for message\n"),
 	case gen_tcp:recv(SenderSocket, 0) of
 		{ok, Data} ->			%% Add interpretation of data?
-			io:put_chars("Holy crap! Im not alone!\n"),
+			io:put_chars("Message recieved\n"),
 			forwardIn(RecieverPort, Data),
 			runIn(SenderSocket, RecieverPort);
 		{error, closed} ->
-			io:put_chars("oh no!\n"),
+			io:put_chars("Error: closed\n"),
 			ok;
 		true ->
 			io:put_chars("got message but dont know what to do with it\n")
@@ -53,11 +51,6 @@ runOut(SenderPort, OutSocket) ->
 	io:put_chars("Transmitter running\n"),
 	
     receive
-		%% {Pid, {connect, Data}} ->	%%
-		%%	<<A:8, B:8, C:8, D:8, Message/binary>> = Data
-		%%	connect();
-		
-		
 		{set_output, Data} ->	%% 
 			io:put_chars("Letting script know who to talk to\n"),
 			forwardIn(SenderPort, set_output),
@@ -66,7 +59,6 @@ runOut(SenderPort, OutSocket) ->
 			io:put_chars("Python wants to send data!\n"),
 			
 			<<_Check:8, Type:8, _Trash:8, Data/binary>> = Binary,
-			%% io:fwrite("~ts~n",[Binary]),
 			if 
 				Type =:= 107 -> 
 					io:put_chars("Found 107\n"),
@@ -75,11 +67,11 @@ runOut(SenderPort, OutSocket) ->
 					
 					if
 						Code =:= 0 ->
-							io:put_chars("Attempt connect\n"),
+							io:put_chars("Python asks to connect\n"),	%% this is currently not a working feature
 							%% <<A:8, B:8, C:8, D:8, Rest/binary>> = Message,
-							Socket = connect({130, 243, 179, 54}, 2233),
+							%% Socket = connect({130, 243, 179, 54}, 2233),
 							%% In = spawn(fun() -> runIn(Socket, SenderPort) end),
-							runOut(SenderPort, Socket);
+							runOut(SenderPort, OutSocket);
 						Code =:= 1 ->
 							io:put_chars("Python wants to send\n"),
 							forwardOut(OutSocket, Message);
@@ -94,7 +86,7 @@ runOut(SenderPort, OutSocket) ->
 					<<_Length:32, Code:8, Message/binary>> = Data,
 					if
 						Code =:= 0 ->
-							io:put_chars("Attempt connect\n"),
+							io:put_chars("Attempt connect\n"),	%% Don't do this
 							%% <<A:8, B:8, C:8, D:8, Rest/binary>> = Message,
 							runOut(SenderPort, connect({130, 243, 179, 54}, 2233));
 						Code =:= 1 ->
@@ -118,14 +110,14 @@ runOut(SenderPort, OutSocket) ->
     end.
 	
 connect(Address, Port) ->
-	{Status, Socket} = gen_tcp:connect(Address, Port, [{active, false}, {packet, 2}]),
+	io:put_chars("Attempting to connect\n"),
+	{Status, Socket} = gen_tcp:connect(Address, Port, [{active, false}]),
 	if
 		Status =:= ok ->
 			io:put_chars("Connection accepted\n");
 		true ->
 			io:put_chars("Connection failed\n")
 	end,
-	startIn(2233, Port),
 	Socket.
 	
 
