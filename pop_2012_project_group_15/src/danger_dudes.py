@@ -215,6 +215,7 @@ def main():
           
     #Handle Input Events
         for event in pygame.event.get():
+            sys.stdout.write("OH YEAH BABY")
             if event.type == QUIT:
                 return
             elif event.type == KEYDOWN and event.key == K_ESCAPE:
@@ -307,5 +308,6 @@ def main():
 #this calls the 'main' function when this script is executed
 if __name__ == '__main__':
     listener = listener()
+    listener.daemon =True
     listener.start()
     main()
