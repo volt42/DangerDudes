@@ -25,6 +25,7 @@
 from gamerules import *
 import random, math, os
 from erlport import Port,Protocol,String
+import threading
 
 
 class ddserver(Protocol):
@@ -33,7 +34,17 @@ class ddserver(Protocol):
     _objects = {}
     _width = 0
     _height = 0
+	
+    running = True
+	
+    _outPort = None
+	
     # Outgoing functions
+    def startListener(self):
+        listen = threading.Thread(target=self.listener)
+		
+    def listener(self):
+        self.run(Port(use_stdio=True))
 
     def sendworldinfo(self,target,x,y):
         send_to_client(self.worldinfo(x,y,200,200))
@@ -41,9 +52,14 @@ class ddserver(Protocol):
     #Incomming functions
 
     def handle(self,port,message):
+        if(Atom(message) == "set_output"):
+            self._outPort = port
+        elif(Atom(message) == "stop"):
+            running = False
+
         msg=message.splitlines()
         if len(msg) <2:
-            port.write("Tell me more")
+            _outPort.write("Tell me more")
         elif msg[0] == "CONNECT":
             self.handleconnect()
         port.write("I am very greatful for: " + msg[len(msg)-1])
@@ -206,4 +222,7 @@ if __name__ == "__main__":
     proto = ddserver()
     # Run protocol with port open on STDIO
     proto.init(1000,1000)
-    proto.run(Port(use_stdio=True))
+    proto.startListener()
+	
+    while(proto.running == True):
+        proto.tic()
