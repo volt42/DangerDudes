@@ -23,9 +23,16 @@
 #                                                                         #
 ###########################################################################
 from gamerules import *
-import random, math, os
+import random, math, os,time
 from erlport import Port,Protocol,String
 import threading,sys
+
+# Debug function, will probably be useful!
+def dbmsg(msg, blocking=False):
+    if blocking:
+        os.system('echo '+str(time.time())+': '+msg+'|python dbmsg.py')
+    else:
+        os.system('echo '+str(time.time())+': '+msg+'|python dbmsg.py &')
 
 class ddserver(Protocol):
     #internal variables
@@ -44,6 +51,9 @@ class ddserver(Protocol):
 		
     def listener(self):
         self.run(Port(use_stdio=True))
+
+    def send(self,id,msg):
+        pass
 
     def sendworldinfo(self,target,x,y):
         send_to_client(self.worldinfo(x,y,200,200))
@@ -105,16 +115,22 @@ class ddserver(Protocol):
             if i[0]=='IDLE':
                 continue
             elif i[0]=='MOVE':
-                if len(i) != 3:
-                    return 'BAD MOVE '+i
-                self.moveobject(self._objects[id].id,int(i[1]),int(i[2]))
-
-            
-
+                try:
+                    self.moveobject(self._objects[id].id,int(i[1]),int(i[2]))
+                except:
+                    print 'Bad values'
+                    
     def setaction(self,id,action):
-        if not self._objects.has_key(id):
-            return False
-        self._objects[id].action = action
+        try:
+            if not self._objects.has_key(id):
+                return False
+            i=action.split(' ')
+            if i[0] =='MOVE':
+                speed=math.sqrt((int(i[1]))**2 + (int(i[2]))**2)
+                if speed < MaxSpeed[self._objects[id].type]:
+                    self._objects[id].action = action
+        except:
+            print 'this is bullshit, send better stuff!'
 
     #Internal functions
     def moveobject(self,id,dx,dy):
@@ -155,26 +171,10 @@ class ddserver(Protocol):
                 #dist = abs(x-i[0])+abs(y-i[1])
                 #Circular collision detection
                 dist= math.sqrt((x-i[0])**2+(y-i[1])**2)
-                
-                #print 'Distance ' +str(self._world[i])+'<->'+str(id)+' '+str(int(dist))+' '+str(Size[self._objects[id].type])+','+str(Size[self._objects[targetsquare[i]].type])
                 if dist < (Size[self._objects[id].type]+Size[self._objects[targetsquare[i]].type])/2:
-                    #print str(i)+' x,y:'+str(x)+','+str(y)+';'+str(i)+'dist= '+str(dist)
                     return True
         return False
 
-    def handlemoverequest(self,obj,x,y):
-        if objectrules.has_key(obj) == True:
-            for i in self._world.keys():
-                if self._world[i]==id:
-                    maxspeed=objectrules[self._world[i]]['SPEED']
-                    speed= math.sqrt((x-i[0])*(x-i[0]) +(y-i[1])*(y-i[1]))
-                    if speed > maxspeed:
-                        return False
-                    else:                    
-                        self.addobject(obj,x,y)
-                    self._world.pop(i)
-            return True
-        return False
     def world(self):
         return self._world
 
@@ -229,14 +229,21 @@ class ddserver(Protocol):
     def tic(self):
         #update every object
         for i in self._objects.keys():
+            obj=self._objects[i]
             self.executeaction(self._objects[i].id)
-
+            self.send(obj.id,self.subworld(obj.x-50,obj.y-50,100,100))
     
 if __name__ == "__main__":
     proto = ddserver()
     # Run protocol with port open on STDIO
     proto.init(1000,1000)
     proto.startListener()
-	
+    
     while(proto.running == True):
+        t=time.time()
         proto.tic()
+        t+=0.02-time.time()
+        if t>0:
+            sleep(t)
+        else:
+            proto.dbmsg('Server overload, add more servers!')

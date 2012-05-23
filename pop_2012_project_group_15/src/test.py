@@ -1,9 +1,8 @@
-import ddserver,ddclient,time,gamerules,random
+import ddserver,time,gamerules,random
 import os,sys,subprocess
 from threading import Thread
 
 reload(ddserver)
-reload(ddclient)
 reload(gamerules)
 
 d=ddserver.ddserver()
