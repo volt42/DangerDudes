@@ -25,8 +25,7 @@
 from gamerules import *
 import random, math, os
 from erlport import Port,Protocol,String
-import threading
-
+import threading,sys
 
 class ddserver(Protocol):
     #internal variables
@@ -141,19 +140,27 @@ class ddserver(Protocol):
             return True
         return False
 
-    def collision(self, id,x,y):
-        if self._objects.has_key(id):
-            size = Size[self._objects[id].type]
-            if not ((0<x<self._width) and (0<y<self._height)):
-                return True
-            
-            target=self.worldinfo(int(x-size/2),int(y-size/2),int(size),int(size))
-            if(target.values().count(id)==1):
-                target.popitem()
-            if(target=={}):
-                return False
-            return True
-        return "Bad ID"
+    def collision(self,id,x,y,radius=5):
+        if not (self._objects.has_key(id) and 0<=x<self._width and 0<=y<self._height):
+            return 'Bad argument'
+        size=Size[self._objects[id].type]
+        targetsquare=self.worldinfo(int(x-radius),int(y-radius),int(x+radius),int(y+radius))
+        #test distance to all objects within the radius
+        for i in targetsquare.keys():
+            if targetsquare[i] == id:
+                #print i
+                continue
+            else:
+                #Square collision detection
+                #dist = abs(x-i[0])+abs(y-i[1])
+                #Circular collision detection
+                dist= math.sqrt((x-i[0])**2+(y-i[1])**2)
+                
+                #print 'Distance ' +str(self._world[i])+'<->'+str(id)+' '+str(int(dist))+' '+str(Size[self._objects[id].type])+','+str(Size[self._objects[targetsquare[i]].type])
+                if dist < (Size[self._objects[id].type]+Size[self._objects[targetsquare[i]].type])/2:
+                    #print str(i)+' x,y:'+str(x)+','+str(y)+';'+str(i)+'dist= '+str(dist)
+                    return True
+        return False
 
     def handlemoverequest(self,obj,x,y):
         if objectrules.has_key(obj) == True:
@@ -191,7 +198,7 @@ class ddserver(Protocol):
 
     #debugprint
     def printworld(self):
-        print '-'*self._width
+        print '#'*(self._width+2)
         for y in xrange(0,self._height):
             s=''
             c=' '
@@ -204,8 +211,8 @@ class ddserver(Protocol):
                         s+=self._world[(x,y)][0]
                 else:
                     s+=' '
-            print('|'+s+'|')
-        print '-'*self._width
+            print('#'+s+'#')
+        print '#'*(self._width+2)
 
     def clearprint(self):
         os.system('clear')

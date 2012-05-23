@@ -11,16 +11,23 @@ d.init(100,50)
 #d.clearprint()
 
 
-def loop(t=5,f=0.25):
+def loop(t=20,f=0.25):
     x={}
-    
-    for i in xrange(0,int(t/f)):
-        x[i]=d.handleconnect(1)
-        for ii in xrange(0,i):
-            d.setaction(x[ii],"MOVE "+str(int(random.random()*4-2))+' '+str(int(random.random()*4-2)))
-        d.clearprint()
-        d.tic()
-        time.sleep(f)
+    d.init(100,50)
+    for i in xrange(0,20):
+           x[i]=d.handleconnect(2322)
+    try:
+        for i in xrange(0,int(t/f)):
+            d.clearprint()
+            for ii in xrange(0,20):
+                action="MOVE "+str(int(random.random()*4-2))+' '+str(int(random.random()*4-2))
+                #print str(x[ii])+' '+action
+                d.setaction(x[ii],action)
+                
+            d.tic()
+            time.sleep(f)
+    except KeyboardInterrupt:
+        print 'You bored already?'
     
 
 def coordcheck():
