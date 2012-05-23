@@ -3,18 +3,24 @@
 -define(TCP_OPTIONS, [binary, {packet, 0}, {active, false}, {reuseaddr, true}]).
 
 
--export([start/0, stop/1, connect/2]).
+-export([start/0, start/1, start/2, stop/1, connect/2]).
 
 
 runClient(ScriptName) ->
 	open_port({spawn, string:concat("python -u ", ScriptName)},
         [{packet, 1}, binary, {env, [{"PYTHONPATH", "../src"}]}]).
 
+		
 start() ->
-	ScriptPort = runClient("simpletest.py"),	%% kickstart client script
-	ServerPort = 2233, %% Talk through port 2233
+	start({127, 0, 0, 1}, 2233).
+	
+start(Ip) ->
+	start(Ip, 2233).
 
-	Socket = connect({127,0,0,1}, 2233),
+start(Ip, Port) ->
+	ScriptPort = runClient("simpletest.py"),	%% kickstart client script
+
+	Socket = connect(Ip, Port),
 	
 	
 	
@@ -51,7 +57,7 @@ runOut(SenderPort, OutSocket) ->
 	io:put_chars("Transmitter running\n"),
 	
     receive
-		{set_output, Data} ->	%% 
+		{set_output, _Data} ->	%% 
 			io:put_chars("Letting script know who to talk to\n"),
 			forwardIn(SenderPort, set_output),
 			runOut(SenderPort, OutSocket);
@@ -99,8 +105,9 @@ runOut(SenderPort, OutSocket) ->
 					
 					runOut(SenderPort, OutSocket);
 				true -> 
-					io:fwrite("~ts~n",Type),
-					io:put_chars("Unknown or unimplemented message type\n"),
+					% io:fwrite("~ts~n",Type),
+					io:put_chars("Unknown or unimplemented message type, forwarding data as is\n"),
+					forwardOut(OutSocket, Binary),
 					runOut(SenderPort, OutSocket)
 			end,
 			runOut(SenderPort, OutSocket)

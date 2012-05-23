@@ -15,11 +15,12 @@
 #   high level functions                                                  #
 #      Move()                                                             #
 #                                                                         #
-###########################################################################
+############################################################################
 from erlport import Protocol, Port, String
 from threading import Thread
 import os, sys, pygame
 from pygame.locals import *
+
 
 pygame.init()
 screen = pygame.display.set_mode((800, 600))
@@ -89,18 +90,21 @@ class ddclient(Protocol):
         print str(name) + ' ' +str(self._name)
 
     def handle_worldinfo(self,worldinfo):
-        _world=worldinfo
-        objectInfo = worldinfo.split(' ')
-        newObject = objectInfo[0]
-        x = int(objectInfo[1])
-        y = int(objectInfo[2])
+        self.allsprites.empty()
+        self._world=worldinfo
+        world=worldinfo.splitlines()
+        for i in world:            
+            objectInfo = i.split(' ')
+            newObject = objectInfo[0]
+            x = int(objectInfo[1])
+            y = int(objectInfo[2])
 
-        if newObject == 'Player':
-            player = DD(x, y)
-            player.add(self.allsprites)
-        elif newObject == 'Stone':
-            stone = Block(x, y, 'block_circle.bmp')
-            stone.add(self.allsprites)
+            if newObject == 'Player':
+                player = DD(x, y)
+                player.add(self.allsprites)
+            elif newObject == 'Stone':
+                stone = Block(x, y, 'block_circle.bmp')
+                stone.add(self.allsprites)
 
         return "Hello, %s" % str(newObject) 
             
@@ -124,9 +128,6 @@ class ddclient(Protocol):
         self.actionrequest('MOVE '+str(dx) +' '+ str(dy))
     def fire(self, type):
         self.actionrequest('FIRE '+str(type))
-
-
- 
 
 def main():   
     background = pygame.Surface(screen.get_size())

@@ -180,10 +180,9 @@ class ddserver(Protocol):
 
     def subworld(self,x,y,width,height):
         values=self.worldinfo(x,y,width,height)
-        returnvalue={}
-
+        returnvalue=""
         for i in values.keys():
-            returnvalue[(i[0]-x,i[1]-y)]=values[i]
+            returnvalue+='Player'+' '+str(i[0])+' '+str(i[1])+'\n'
         return returnvalue
             
     def worldinfo(self,x,y,width,height):
