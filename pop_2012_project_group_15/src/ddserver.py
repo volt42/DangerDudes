@@ -178,6 +178,14 @@ class ddserver(Protocol):
     def world(self):
         return self._world
 
+    def subworld(self,x,y,width,height):
+        values=self.worldinfo(x,y,width,height)
+        returnvalue={}
+
+        for i in values.keys():
+            returnvalue[(i[0]-x,i[1]-y)]=values[i]
+        return returnvalue
+            
     def worldinfo(self,x,y,width,height):
         value={}
 
