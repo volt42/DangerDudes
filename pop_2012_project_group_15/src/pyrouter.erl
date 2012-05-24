@@ -18,7 +18,7 @@ start(Ip) ->
 	start(Ip, 2233).
 
 start(Ip, Port) ->
-	ScriptPort = runClient("simpletest.py"),	%% kickstart client script
+	ScriptPort = runClient("ddclient.py"),	%% kickstart client script
 
 	Socket = connect(Ip, Port),
 	
@@ -50,17 +50,13 @@ runIn(SenderSocket, RecieverPort) ->
 	end.
 
 runOutFirst(SenderPort, OutSocket) ->
-	forwardIn(SenderPort, set_output),
+	forwardIn(SenderPort, {init, "Player"}),
 	runOut(SenderPort, OutSocket).
 	
 runOut(SenderPort, OutSocket) ->
 	io:put_chars("Transmitter running\n"),
 	
     receive
-		{set_output, _Data} ->	%% 
-			io:put_chars("Letting script know who to talk to\n"),
-			forwardIn(SenderPort, set_output),
-			runOut(SenderPort, OutSocket);
         {SenderPort, {data, Binary}} ->
 			io:put_chars("Python wants to send data!\n"),
 			
@@ -112,7 +108,7 @@ runOut(SenderPort, OutSocket) ->
 			end,
 			runOut(SenderPort, OutSocket)
     after
-        5000 ->
+        10000 ->
             {error, timeout}
     end.
 	

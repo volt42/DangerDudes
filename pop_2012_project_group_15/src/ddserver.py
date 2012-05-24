@@ -53,7 +53,7 @@ class ddserver(Protocol):
         self.run(Port(use_stdio=True))
 
     def send(self,id,msg):
-        pass
+        self._outPort.write([id,msg])
 
     def sendworldinfo(self,target,x,y):
         send_to_client(self.worldinfo(x,y,200,200))
@@ -61,6 +61,7 @@ class ddserver(Protocol):
     #Incomming functions
 
     def handle(self,port,message):
+        dbmsg("Great success")
         if(Atom(message) == "set_output"):
             self._outPort = port
         elif(Atom(message) == "stop"):
@@ -83,18 +84,22 @@ class ddserver(Protocol):
         self._world={}
         self._objects={}
               
-    def handleconnect(self,port):
+    def handle_connect(self,port,id):
+        dbmsg("Den kom till handle_connect!")
         obj = gameobject()
         obj.health=100
         obj.type ='PLAYER'
         obj.action="IDLE"
-
+        
+        obj.id=id
+        self._objects[id]=obj
+        """ Gammal idhantering
         for i in xrange(ord('A'),ord('z')):
             if not self._objects.has_key(chr(i)):
                 obj.id=chr(i)
                 self._objects[chr(i)]=obj
                 break
-
+        """
         #if client is unlucky he will not get a spot but no inf loops here at least
         if not self._objects.has_key(obj.id):
             return False
@@ -247,6 +252,6 @@ if __name__ == "__main__":
         proto.tic()
         t+=0.05-time.time()
         if t>0:
-            sleep(t)
+           time.sleep(t)
         else:
             proto.dbmsg('Server overload, add more servers!')
