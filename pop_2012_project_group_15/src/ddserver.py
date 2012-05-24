@@ -72,6 +72,9 @@ class ddserver(Protocol):
         elif msg[0] == "CONNECT":
             self.handleconnect()
         port.write("I am very greatful for: " + msg[len(msg)-1])
+    
+    def handle_init(self,port,message):
+        self._outPort = port
 
     #This function needs to be fixed
     def init(self,width,height):
@@ -242,7 +245,7 @@ if __name__ == "__main__":
     while(proto.running == True):
         t=time.time()
         proto.tic()
-        t+=0.02-time.time()
+        t+=0.05-time.time()
         if t>0:
             sleep(t)
         else:
