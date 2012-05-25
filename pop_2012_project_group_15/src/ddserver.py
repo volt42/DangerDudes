@@ -49,7 +49,10 @@ class ddserver(Protocol):
         self.run(Port(use_stdio=True))
 
     def send(self,id,msg):
-        self._outPort.write([id,msg])
+      
+        if self._outPort:
+         #   dbmsg.msg("nu skickar vi: "+str(id)+' | '+str(self._outPort))
+            self._outPort.write([id,msg])
 
     def sendworldinfo(self,target,x,y):
         send_to_client(self.worldinfo(x,y,200,200))
@@ -61,7 +64,7 @@ class ddserver(Protocol):
             for i in msg:
                 if(type(i) == type(1)):
                     value+=chr(i)
-                    return value
+            return value
         except:
             dbmsg("Craptostring want better values! You say: " + msg+ " I say faaak yooo")
 
@@ -70,20 +73,16 @@ class ddserver(Protocol):
             if Atom(message[0]) == "init":
                 self._outPort = port
             elif Atom(message[0]) =="connect":
-                connect(message[1])
+                self.connect(message[1])
             elif Atom(message[0])=="data":
-                setaction(message[1],craptostring(message[2]))
+                self.setaction(message[1],craptostring(message[2]))
             
                 
                 
         except:
             dbmsg.msg("Send better stuff, not: "+str(message))
    
-    def handle_init(self,message):
-
-        self._outPort = port
-
-    #This function needs to be fixed
+     #This function needs to be fixed
     def init(self,width,height):
         self._width =width
         self._height=height
@@ -253,4 +252,5 @@ if __name__ == "__main__":
         if t>0:
            time.sleep(t)
         else:
-            dbmsg.msg('Server overload, add more servers!')
+            pass
+            #dbmsg.msg('Server overload, add more servers!')
