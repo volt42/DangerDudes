@@ -72,7 +72,10 @@ runOut(SenderPort, Clients) ->
 		    io:put_chars("Unknown or unimplemented message type, no client id can be found\n")
 		    %% forwardOut(OutSocket, Binary),
 	    end,
-	    runOut(SenderPort, Clients)
+	    runOut(SenderPort, Clients);
+	{True} -> 
+		io:put_chars("strange message from python\n"),
+		io:write(True)
     after
         10000 ->
             {error, timeout}
