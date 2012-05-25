@@ -1,7 +1,8 @@
-import sys
+import sys,time
 from Tkinter import *
 
-x=sys.stdin.readline()
-root = Tk()
-Label(root, text=x).pack()
-root.mainloop()
+def msg(message):
+    message= str(time.time()) +':' + message
+    root = Tk()
+    Label(root, text=message).pack()
+    root.mainloop()

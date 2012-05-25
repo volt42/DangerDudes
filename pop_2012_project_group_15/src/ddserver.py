@@ -56,10 +56,10 @@ class ddserver(Protocol):
 
     #Incomming functions
     def handle(self,port,message):
-        
-        dbmsg.msg("Great success handle:" + str(message))
-        message=message[1]
-        dbmsg.msg("Great success :" + str(message))
+        if(Atom(message)=="init"):
+            dbmsg.msg("INIT")
+        dbmsg.msg("Great success handle:" + str(message)+str(type(message)))
+        dbmsg.msg("Great success :" + str(message[1])+str(type(message[1])))
 
         if(Atom(message) == "set_output"):
             self._outPort = port
@@ -73,7 +73,7 @@ class ddserver(Protocol):
             self.handleconnect()
         port.write("I am very greatful for: " + msg[len(msg)-1])
    
-    def handle_init(self,port,message):
+    def handle_init(self,message):
         dbmsg.msg("Great success handle_init:"+message)
         self._outPort = port
 
