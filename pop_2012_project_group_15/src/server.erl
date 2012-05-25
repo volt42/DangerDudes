@@ -11,21 +11,25 @@ runClient(ScriptName) ->
 
 start() -> %port 2233 is hard coded
     PyPort = runClient("ddserver.py"),
-    OutPid = spawn(fun() -> runOutFirst(PyPort) end),
     {ok, LSocket} = gen_tcp:listen(2233, ?TCP_OPTIONS),
-    accept(LSocket, {PyPort, OutPid}, 0).
+    io:write(self()),
+    Pid = self(),
+    spawn(fun() ->  accept(LSocket, {PyPort, Pid}, 0) end),
+    runOutFirst(PyPort).
 
 
 						% Wait for incoming connections and spawn the loop when we get one.
 accept(LSocket, Info, NextId) ->
     {ok, Socket} = gen_tcp:accept(LSocket),
-    io:put_chars("NewConnection"),
+    io:put_chars("NewConnection\n"),
     newClient(Socket, NextId, Info),
     accept(LSocket, Info, NextId + 1).
 
 newClient(Socket, Id, {PyPort, OutPid}) ->
+    io:write(OutPid),
     spawn(fun() -> inLoop(Socket, Id, PyPort) end),
     OutPid ! {connecting, Socket, Id}.
+
 
 						% Echo back whatever data we receive on Socket.
 inLoop(Socket, Id, Pyserver) ->
@@ -49,11 +53,13 @@ runOut(SenderPort, Clients) ->
 
     receive
 	{connecting, Socket, Id} ->
+	    io:put_chars("connecting ->forwardin"),
 	    forwardIn(SenderPort, [connect, Id]),
+	    io:put_chars("->runOut"),
 	    runOut(SenderPort, [{Socket, Id} | Clients]);
-		
-    {SenderPort, {data, Binary}} ->
-	    io:put_chars("Python wants to send data!\n"),
+
+	{SenderPort, {data, Binary}} ->
+	    io:put_chars("Python wants to send data!!!!!!!!!!\n"),
 
 	    <<_Check:8, Type:8, _Trash:8, Data/binary>> = Binary,
 	    if 
@@ -73,11 +79,12 @@ runOut(SenderPort, Clients) ->
 		    %% forwardOut(OutSocket, Binary),
 	    end,
 	    runOut(SenderPort, Clients);
-	{True} -> 
-		io:put_chars("strange message from python\n"),
-		io:write(True)
+
+	True -> 
+	    io:put_chars("strange message from python\n"),
+	    io:write(True)
     after
-        10000 ->
+        300000 ->
             {error, timeout}
     end.
 
