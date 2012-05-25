@@ -8,7 +8,7 @@ class gameobject:
     x =-1
     y=-1
 
-MaxSpeed = {'PLAYER' : 6,
+MaxSpeed = {'PLAYER' : 3,
             'MONSTER' : 3,
             'STONE': 0,
             'BIGSTONE': 0,
