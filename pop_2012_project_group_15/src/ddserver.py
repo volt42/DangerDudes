@@ -55,26 +55,32 @@ class ddserver(Protocol):
         send_to_client(self.worldinfo(x,y,200,200))
 
     #Incomming functions
+    def craptostring(self,msg):
+        try:
+            value=""
+            for i in msg:
+                if(type(i) == type(1)):
+                    value+=chr(i)
+                    return value
+        except:
+            dbmsg("Craptostring want better values! You say: " + msg+ " I say faaak yooo")
+
     def handle(self,port,message):
-        if(Atom(message)=="init"):
-            dbmsg.msg("INIT")
-        dbmsg.msg("Great success handle:" + str(message)+str(type(message)))
-        dbmsg.msg("Great success :" + str(message[1])+str(type(message[1])))
-
-        if(Atom(message) == "set_output"):
-            self._outPort = port
-        elif(Atom(message) == "stop"):
-            running = False
-
-        msg=message.splitlines()
-        if len(msg) <2:
-            _outPort.write("Tell me more")
-        elif msg[0] == "CONNECT":
-            self.handleconnect()
-        port.write("I am very greatful for: " + msg[len(msg)-1])
+        try:
+            if Atom(message[0]) == "init":
+                self._outPort = port
+            elif Atom(message[0]) =="connect":
+                connect(message[1])
+            elif Atom(message[0])=="data":
+                setaction(message[1],craptostring(message[2]))
+            
+                
+                
+        except:
+            dbmsg.msg("Send better stuff, not: "+str(message))
    
     def handle_init(self,message):
-        dbmsg.msg("Great success handle_init:"+message)
+
         self._outPort = port
 
     #This function needs to be fixed
@@ -84,8 +90,7 @@ class ddserver(Protocol):
         self._world={}
         self._objects={}
               
-    def handle_connect(self,port,id):
-        dbmsg.msg("Den kom till handle_connect!")
+    def connect(self,id):
         obj = gameobject()
         obj.health=100
         obj.type ='PLAYER'
@@ -93,13 +98,7 @@ class ddserver(Protocol):
         
         obj.id=id
         self._objects[id]=obj
-        """ Gammal idhantering
-        for i in xrange(ord('A'),ord('z')):
-            if not self._objects.has_key(chr(i)):
-                obj.id=chr(i)
-                self._objects[chr(i)]=obj
-                break
-        """
+    
         #if client is unlucky he will not get a spot but no inf loops here at least
         if not self._objects.has_key(obj.id):
             return False
