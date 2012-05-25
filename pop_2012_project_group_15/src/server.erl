@@ -41,7 +41,7 @@ inLoop(Socket, Id, Pyserver) ->
 
 
 runOutFirst(SenderPort) ->
-    forwardIn(SenderPort, init),
+    forwardIn(SenderPort, [init, "message"]),
     runOut(SenderPort, []).
 
 runOut(SenderPort, Clients) ->
