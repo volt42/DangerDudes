@@ -40,7 +40,7 @@ runIn(SenderSocket, RecieverPort) ->
 	case gen_tcp:recv(SenderSocket, 0) of
 		{ok, Data} ->			%% Add interpretation of data?
 			io:put_chars("Message recieved\n"),
-			forwardIn(RecieverPort, Data),
+			forwardIn(RecieverPort, [binary_to_term(data), Data]),
 			runIn(SenderSocket, RecieverPort);
 		{error, closed} ->
 			io:put_chars("Error: closed\n"),
