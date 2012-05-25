@@ -24,15 +24,9 @@
 ###########################################################################
 from gamerules import *
 import random, math, os,time
-from erlport import Port,Protocol,String
+from erlport import Port,Protocol,String,Atom
 import threading,sys
-
-# Debug function, will probably be useful!
-def dbmsg(msg, blocking=False):
-    if blocking:
-        os.system('echo '+str(time.time())+': '+msg+'|python dbmsg.py')
-    else:
-        os.system('echo '+str(time.time())+': '+msg+'|python dbmsg.py &')
+import dbmsg
 
 class ddserver(Protocol):
     #internal variables
@@ -48,6 +42,8 @@ class ddserver(Protocol):
     # Outgoing functions
     def startListener(self):
         listen = threading.Thread(target=self.listener)
+        listen.daemon = True
+        listen.start()
 		
     def listener(self):
         self.run(Port(use_stdio=True))
@@ -59,9 +55,12 @@ class ddserver(Protocol):
         send_to_client(self.worldinfo(x,y,200,200))
 
     #Incomming functions
-
     def handle(self,port,message):
-        dbmsg("Great success")
+        
+        dbmsg.msg("Great success handle:" + str(message))
+        message=message[1]
+        dbmsg.msg("Great success :" + str(message))
+
         if(Atom(message) == "set_output"):
             self._outPort = port
         elif(Atom(message) == "stop"):
@@ -73,8 +72,9 @@ class ddserver(Protocol):
         elif msg[0] == "CONNECT":
             self.handleconnect()
         port.write("I am very greatful for: " + msg[len(msg)-1])
-    
+   
     def handle_init(self,port,message):
+        dbmsg.msg("Great success handle_init:"+message)
         self._outPort = port
 
     #This function needs to be fixed
@@ -85,7 +85,7 @@ class ddserver(Protocol):
         self._objects={}
               
     def handle_connect(self,port,id):
-        dbmsg("Den kom till handle_connect!")
+        dbmsg.msg("Den kom till handle_connect!")
         obj = gameobject()
         obj.health=100
         obj.type ='PLAYER'
@@ -254,4 +254,4 @@ if __name__ == "__main__":
         if t>0:
            time.sleep(t)
         else:
-            proto.dbmsg('Server overload, add more servers!')
+            dbmsg.msg('Server overload, add more servers!')

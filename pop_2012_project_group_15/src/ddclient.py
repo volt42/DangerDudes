@@ -20,6 +20,7 @@ import os, sys, pygame
 from erlport import Protocol, Port, String
 from threading import Thread
 from pygame.locals import *
+from dbmsg import msg
 
 pygame.init()
 screen = pygame.display.set_mode((800, 600))
@@ -63,7 +64,7 @@ class ddclient(Protocol):
     _hero = DD(400,300)
     allsprites = pygame.sprite.RenderPlain(_hero)
 
-    def sendRequest(action):
+    def sendRequest(self,action):
         if self._port:
             self._port.write(action)
         
@@ -86,8 +87,17 @@ class ddclient(Protocol):
             elif newObject == 'Stone':
                 stone = Block(x, y, 'block_circle.bmp')
                 stone.add(self.allsprites)
+        
+class listener(Thread):
+    _client = None
+    def __init__(self, client):
+        self._client = client
+        Thread.__init__(self)
 
-def main():   
+    def run(self):
+        self._client.run(Port(use_stdio=True))
+
+def main():  
     background = pygame.Surface(screen.get_size())
     background = background.convert()
     background.fill((255, 255, 255))
@@ -99,45 +109,37 @@ def main():
 
     while True:
         clock.tick(60)
-
+        
         for event in pygame.event.get():
             if event.type == QUIT:
                 return
             elif event.type == KEYDOWN and event.key == K_ESCAPE:
                 return
             elif event.type == KEYDOWN and event.key == K_UP:
-                client.sendRequest('UP')
+                client.sendRequest('MOVE 0 1')
             elif event.type == KEYDOWN and event.key == K_RIGHT:
-                client.sendRequset('RIGHT')
+                client.sendRequest('MOVE 1 0')
             elif event.type == KEYDOWN and event.key == K_DOWN:
-                client.sendRequset('DOWN')
+                client.sendRequest('MOVE 0 -1')
             elif event.type == KEYDOWN and event.key == K_LEFT:
-                client.sendRequset('LEFT')
+                client.sendRequest('MOVE -1 0')
             elif event.type == KEYUP and event.key == K_UP:
-                client.sendRequset('UP_0')
+                client.sendRequest('MOVE 0 0')
             elif event.type == KEYUP and event.key == K_RIGHT:
-                client.sendRequset('RIGHT_0')
+                client.sendRequest('MOVE 0 0')
             elif event.type == KEYUP and event.key == K_DOWN:
-                client.sendRequset('DOWN_0')
+                client.sendRequest('MOVE 0 0')
             elif event.type == KEYUP and event.key == K_LEFT:
-                client.sendRequset('LEFT_0')        
+                client.sendRequest('MOVE 0 0')        
     
         screen.blit(background, (0, 0)) 
         client.allsprites.draw(screen)
         pygame.display.flip()
-        
-class listener(Thread):
-    _client = None
-    def __init__(self, client):
-        self._client = client
-        Thread.__init__(self)
-
-    def run(self):
-        self._client.run(Port(use_stdio=True))
         
 if __name__ == "__main__":
     client = ddclient()
     listener = listener(client)
     listener.daemon = True
     listener.start()
+
     main()
