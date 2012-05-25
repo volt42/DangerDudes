@@ -53,7 +53,7 @@ inLoop(Socket, Pyserver) ->
 
 
 runOutFirst(SenderPort) ->
-    forwardIn(SenderPort, {init, "Server"}),
+    forwardIn(SenderPort, init),
     runOut(SenderPort, {[], 0}).
 
 runOut(SenderPort, {Clients, NextId}) ->

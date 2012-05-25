@@ -17,10 +17,10 @@
 #                                                                         #
 ############################################################################
 import os, sys, pygame
-from erlport import Protocol, Port, String
+from erlport import *
 from threading import Thread
 from pygame.locals import *
-from dbmsg import msg
+#from dbmsg import msg
 
 pygame.init()
 screen = pygame.display.set_mode((800, 600))
@@ -68,8 +68,9 @@ class ddclient(Protocol):
         if self._port:
             self._port.write(action)
         
-    def handle_init(self,port):
-        self._port=port   
+    def handle(self, port, msg):
+        if(Atom(msg) == "init"):
+            self._port=port   
 
     def handle_worldinfo(self,worldinfo):
         self.allsprites.empty()
