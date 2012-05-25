@@ -50,7 +50,7 @@ runIn(SenderSocket, RecieverPort) ->
 	end.
 
 runOutFirst(SenderPort, OutSocket) ->
-	forwardIn(SenderPort, init),
+	forwardIn(SenderPort, [init, "message"]),
 	runOut(SenderPort, OutSocket).
 	
 runOut(SenderPort, OutSocket) ->
@@ -76,10 +76,10 @@ runOut(SenderPort, OutSocket) ->
 							runOut(SenderPort, OutSocket);
 						Code =:= 1 ->
 							io:put_chars("Python wants to send\n"),
-							forwardOut(OutSocket, Message);
+							forwardOut(OutSocket, [data, Message]);
 						true -> 
 							io:put_chars("Unimplemented code, just forward\n"),
-							forwardOut(OutSocket, Message)
+							forwardOut(OutSocket, [data, Message])
 					end,
 					
 					runOut(SenderPort, OutSocket);
@@ -93,10 +93,10 @@ runOut(SenderPort, OutSocket) ->
 							runOut(SenderPort, connect({130, 243, 179, 54}, 2233));
 						Code =:= 1 ->
 							io:put_chars("Python wants to send\n"),
-							forwardOut(OutSocket, Message);
+							forwardOut(OutSocket, [data, Message]);
 						true -> 
 							io:put_chars("Unimplemented code, just forward\n"),
-							forwardOut(OutSocket, Message)
+							forwardOut(OutSocket, [data, Message])
 					end,
 					
 					runOut(SenderPort, OutSocket);
@@ -107,7 +107,7 @@ runOut(SenderPort, OutSocket) ->
 					io:put_chars("\n"),
 					
 					io:put_chars("Unknown or unimplemented message type, forwarding data as is\n"),
-					forwardOut(OutSocket, Binary),
+					forwardOut(OutSocket, [data, Binary]),
 					runOut(SenderPort, OutSocket)
 			end,
 			runOut(SenderPort, OutSocket)

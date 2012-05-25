@@ -61,7 +61,7 @@ runOut(SenderPort, {Clients, NextId}) ->
 
     receive
 	{connecting, Socket} ->
-	    forwardIn(SenderPort, NextId),
+	    forwardIn(SenderPort, [connect, NextId]),
 	    runOut(SenderPort, {[{Socket, NextId} | Clients], NextId + 1});
         {SenderPort, {data, Binary}} ->
 	    io:put_chars("Python wants to send data!\n"),
