@@ -52,14 +52,13 @@ class ddserver(Protocol):
         
         if self._outPort:
             self._outPort.write("tjena grabben")
-           # dbmsg.msg("nu skickar vi: "+str(id)+' | '+str(self._outPort))
             self._outPort.write([id,msg])
 
     def sendworldinfo(self,target,x,y):
         send_to_client(self.worldinfo(x,y,200,200))
 
     #Incomming functions
-    def craptostring(self,msg):
+    def listtostring(self,msg):
         try:
             value=""
             for i in msg:
@@ -68,7 +67,7 @@ class ddserver(Protocol):
             return value
         except:
             pass
-            ##dbmsg.msg("Craptostring want better values! You say: " + msg+ " I say faaak yooo")
+            dbmsg.msg("listtostring want better values! You say: " + msg)
 
     def handle(self,port,message):
         if Atom(message[0]) == "init":
@@ -76,7 +75,10 @@ class ddserver(Protocol):
         elif Atom(message[0]) =="connect":
             self.connect(message[1])
         elif Atom(message[0])=="data":
-            self.setaction(message[1],self.craptostring(message[2]))
+            dbmsg.msg(str(message[2])+'\n'+str(message[1])+'\n'+str(message[0])+'\n'+str(message))
+            self.setaction(int(message[1]),self.listtostring(message[2]))
+        else:
+            dbmsg.msg("Server:handle() got something it did not understand: "+str(message))
    
      #This function needs to be fixed
     def init(self,width,height):
@@ -90,11 +92,8 @@ class ddserver(Protocol):
         obj.health=100
         obj.type ='PLAYER'
         obj.action="IDLE"
-        
         obj.id=id
         self._objects[id]=obj
-        #dbmsg.msg(str(self._objects)+'  '+ str(self._objects.keys()))
-        #if client is unlucky he will not get a spot but no inf loops here at least
         if not self._objects.has_key(obj.id):
             return False
         for i in xrange(0,50):
@@ -123,6 +122,7 @@ class ddserver(Protocol):
                     print 'Bad values'
                     
     def setaction(self,id,action):
+        dbmsg.msg("Setting new action: "+str(id)+' '+str(action))
         try:
             if not self._objects.has_key(id):
                 return False
@@ -133,7 +133,7 @@ class ddserver(Protocol):
                     self._objects[id].action = action
         except:
             pass
-            #dbmsg.msg('this is bullshit, send better stuff!')
+            dbmsg.msg('this is bullshit, send better stuff to setaction!')
 
     #Internal functions
     def moveobject(self,id,dx,dy):
@@ -230,26 +230,21 @@ class ddserver(Protocol):
     
 
     def tic(self):
-        #update every object
         for i in self._objects.keys():
-           # dbmsg.msg("tic")
             obj=self._objects[i]
             self.executeaction(self._objects[i].id)
-           # dbmsg.msg("nu skickar python nogot")
             self.send(obj.id,self.subworld(obj.x-50,obj.y-50,100,100))
     
 if __name__ == "__main__":
     proto = ddserver()
-    # Run protocol with port open on STDIO
     proto.init(1000,1000)
     proto.startListener()
     while(proto.running == True):
-  #      t=time.time()
-        time.sleep(0.5)
+        t=time.time()
         proto.tic()
-   #     t+=1-time.time()
-    #    if t>0:
-     #      time.sleep(t)
-    #    else:
-    #        pass
+        t+=5-time.time()
+        if t>0:
+            time.sleep(t)
+        else:
+            pass
             #dbmsg.msg('Server overload, add more servers!')

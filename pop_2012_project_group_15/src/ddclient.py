@@ -63,22 +63,30 @@ class ddclient(Protocol):
     _port = None
     _hero = DD(400,300)
     allsprites = pygame.sprite.RenderPlain(_hero)
+    def listtostring(self,msg):
+        try:
+            value=""
+            for i in msg:
+                if(type(i) == type(1)):
+                    value+=chr(i)
+            return value
+        except:
+            dbmsg.msg("listtostring want better values! You say: " + msg)
 
     def sendRequest(self,action):
         if self._port:
             self._port.write(action)
         
     def handle(self, port, msg):
-        dbmsg.msg("handle: "+' '+ str(port)+str(msg))
         if(Atom(msg[0]) == "init"):
             self._port=port  
         else:
             self.handle_worldinfo(msg[1])
 
     def handle_worldinfo(self,worldinfo):
-        dbmsg.msg("worldinfo: "+str(worldinfo))
+        dbmsg.msg("worldinfo: "+str(worldinfo)+'->'+self.listtostring(worldinfo))
         self.allsprites.empty()
-        world=worldinfo.splitlines()
+        world=self.listtostring(worldinfo).splitlines()
         
         for i in world:            
             objectInfo = i.split(' ')
