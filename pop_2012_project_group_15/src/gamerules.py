@@ -8,6 +8,9 @@ class gameobject:
     x =-1
     y=-1
 
+Objects= ['PLAYER','MONSTER','STONE','BIGSTONE','BULLET','BOMB']
+Commands=['PLANTBOMB','FIREBULLET']
+
 MaxSpeed = {'PLAYER' : 3,
             'MONSTER' : 3,
             'STONE': 0,
@@ -16,9 +19,11 @@ MaxSpeed = {'PLAYER' : 3,
 
 #Every object is a square and size is the length of one side
 
-Size = {'PLAYER' : 2,
-        'MONSTER': 10,
-        'STONE': 3,
-        'BIGSTONE':16,
-        'BULLET':1}
+Size = {'PLAYER' : 30,
+        'MONSTER': 30,
+        'STONE': 30,
+        'BIGSTONE':75,
+        'BULLET':1,
+        'BOMB':2,
+        'BOMBRADIUS':75}
 
