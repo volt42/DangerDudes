@@ -19,11 +19,11 @@ MaxSpeed = {'PLAYER' : 3,
 
 #Every object is a square and size is the length of one side
 
-Size = {'PLAYER' : 30,
-        'MONSTER': 30,
-        'STONE': 30,
-        'BIGSTONE':75,
+Size = {'PLAYER' : 50,
+        'MONSTER': 50,
+        'STONE': 50,
+        'BIGSTONE':100,
         'BULLET':1,
-        'BOMB':2,
-        'BOMBRADIUS':75}
+        'BOMB':5,
+        'BOMBRADIUS':150}
 
