@@ -20,10 +20,10 @@ import os, sys, pygame
 from erlport import *
 from threading import Thread
 from pygame.locals import *
-import dbmsg
+from dbmsg import err, exc,msg
 
 pygame.init()
-screen = pygame.display.set_mode((800, 600))
+screen = pygame.display.set_mode((300, 300))
 pygame.display.set_caption('Danger dudes')
 pygame.mouse.set_visible(0)
 
@@ -47,6 +47,9 @@ class DD(pygame.sprite.Sprite):
         self.image, self.rect = load_image('ddf.bmp', -1)
         self.rect.topleft = x, y
         
+    def move(self,x,y):
+        self.rect.topleft=x,y
+
     def update(self):
         pass
 
@@ -61,17 +64,8 @@ class Block(pygame.sprite.Sprite):
         
 class ddclient(Protocol):
     _port = None
-    _hero = DD(400,300)
+    _hero = DD(200,200)
     allsprites = pygame.sprite.RenderPlain(_hero)
-    def listtostring(self,msg):
-        try:
-            value=""
-            for i in msg:
-                if(type(i) == type(1)):
-                    value+=chr(i)
-            return value
-        except:
-            dbmsg.msg("listtostring want better values! You say: " + msg)
 
     def sendRequest(self,action):
         if self._port:
@@ -84,9 +78,9 @@ class ddclient(Protocol):
             self.handle_worldinfo(msg[1])
 
     def handle_worldinfo(self,worldinfo):
-        dbmsg.msg("worldinfo: "+str(worldinfo)+'->'+self.listtostring(worldinfo))
+        err("Client.worldinfo: "+str(worldinfo))
         self.allsprites.empty()
-        world=self.listtostring(worldinfo).splitlines()
+        world=String(worldinfo).splitlines()
         
         for i in world:            
             objectInfo = i.split(' ')
@@ -94,10 +88,10 @@ class ddclient(Protocol):
             x = int(objectInfo[1])
             y = int(objectInfo[2])
 
-            if newObject == 'Player':
+            if newObject == 'PLAYER':
                 player = DD(x, y)
                 player.add(self.allsprites)
-            elif newObject == 'Stone':
+            elif newObject == 'STONE':
                 stone = Block(x, y, 'block_circle.bmp')
                 stone.add(self.allsprites)
         

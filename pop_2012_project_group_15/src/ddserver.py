@@ -26,7 +26,7 @@ from gamerules import *
 import random, math, os,time
 from erlport import Port,Protocol,String,Atom
 import threading,sys
-import dbmsg
+from dbmsg import err, exc
 
 class ddserver(Protocol):
     #internal variables
@@ -49,36 +49,25 @@ class ddserver(Protocol):
         self.run(Port(use_stdio=True))
 
     def send(self,id,msg):
-        
         if self._outPort:
-            self._outPort.write("tjena grabben")
+            err("Sending ID: "+str(id)+". msg: "+str(msg)+"\n")
             self._outPort.write([id,msg])
 
     def sendworldinfo(self,target,x,y):
         send_to_client(self.worldinfo(x,y,200,200))
 
     #Incomming functions
-    def listtostring(self,msg):
-        try:
-            value=""
-            for i in msg:
-                if(type(i) == type(1)):
-                    value+=chr(i)
-            return value
-        except:
-            pass
-            dbmsg.msg("listtostring want better values! You say: " + msg)
-
+        
     def handle(self,port,message):
         if Atom(message[0]) == "init":
             self._outPort = port
         elif Atom(message[0]) =="connect":
             self.connect(message[1])
         elif Atom(message[0])=="data":
-            dbmsg.msg(str(message[2])+'\n'+str(message[1])+'\n'+str(message[0])+'\n'+str(message))
-            self.setaction(int(message[1]),self.listtostring(message[2]))
+            err(str(message[2])+'\n'+str(message[1])+'\n'+str(message[0])+'\n'+str(message))
+            self.setaction(int(message[1]),message[2])
         else:
-            dbmsg.msg("Server:handle() got something it did not understand: "+str(message))
+            err("Server:handle() got something it did not understand: "+str(message))
    
      #This function needs to be fixed
     def init(self,width,height):
@@ -122,7 +111,7 @@ class ddserver(Protocol):
                     print 'Bad values'
                     
     def setaction(self,id,action):
-        dbmsg.msg("Setting new action: "+str(id)+' '+str(action))
+        err("Setting new action: "+str(id)+' '+str(action))
         try:
             if not self._objects.has_key(id):
                 return False
@@ -133,7 +122,7 @@ class ddserver(Protocol):
                     self._objects[id].action = action
         except:
             pass
-            dbmsg.msg('this is bullshit, send better stuff to setaction!')
+            err('this is bullshit, send better stuff to setaction!')
 
     #Internal functions
     def moveobject(self,id,dx,dy):
@@ -217,7 +206,6 @@ class ddserver(Protocol):
                     if(type(self._world[x,y]) == type(1)):
                         s+='#'
                     else:
-#                        print str(x) +' '+str(y)
                         s+=self._world[(x,y)][0]
                 else:
                     s+=' '
@@ -233,7 +221,7 @@ class ddserver(Protocol):
         for i in self._objects.keys():
             obj=self._objects[i]
             self.executeaction(self._objects[i].id)
-            self.send(obj.id,self.subworld(obj.x-50,obj.y-50,100,100))
+            self.send(obj.id,self.subworld(obj.x-100,obj.y-100,200,200))
     
 if __name__ == "__main__":
     proto = ddserver()
@@ -247,4 +235,4 @@ if __name__ == "__main__":
             time.sleep(t)
         else:
             pass
-            #dbmsg.msg('Server overload, add more servers!')
+            err('Server overload, add more servers!')

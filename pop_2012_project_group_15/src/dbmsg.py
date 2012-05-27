@@ -9,6 +9,11 @@ def msg(message):
     Label(root, text=message).pack()
     root.mainloop()
 
+def err(string):
+    sys.stderr.write('Py: '+str(string)+'\n')
+def exc(string,exception="unspecified" ):
+    sys.stderr.write('PyException: '+str(exception)+': '+str(string)+'\n')
+
 class popup():
     _msg =""    
     def __add__(self,msg):

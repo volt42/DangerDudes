@@ -11,22 +11,21 @@ runClient(ScriptName) ->
 
 start() -> %port 2233 is hard coded
     PyPort = runClient("ddserver.py"),
+%    PyPort = runClient("testserver.py"),
     {ok, LSocket} = gen_tcp:listen(2233, ?TCP_OPTIONS),
-    io:write(self()),
     Pid = self(),
     spawn(fun() ->  accept(LSocket, {PyPort, Pid}, 0) end),
     runOutFirst(PyPort).
 
 
-						% Wait for incoming connections and spawn the loop when we get one.
+      % Wait for incoming connections and spawn the loop when we get one.
 accept(LSocket, Info, NextId) ->
     {ok, Socket} = gen_tcp:accept(LSocket),
-    io:put_chars("NewConnection\n"),
+    io:put_chars("erl: NewConnection\n"),
     newClient(Socket, NextId, Info),
     accept(LSocket, Info, NextId + 1).
 
 newClient(Socket, Id, {PyPort, OutPid}) ->
-    io:write(OutPid),
     spawn(fun() -> inLoop(Socket, Id, PyPort) end),
     OutPid ! {connecting, Socket, Id}.
 
@@ -37,7 +36,9 @@ inLoop(Socket, Id, Pyserver) ->
 	{ok, Data} ->
 						%OK, now send this shit to python
 	    forwardIn(Pyserver, [data, Id, Data]),
-	    io:put_chars("Someting arrived\n"),
+	    io:put_chars("erl: Someting arrived\n"),
+	    io:write(Data),
+	    io:put_chars("\n-----------\n"),
 	    inLoop(Socket,Id, Pyserver);
 	{error, closed} ->
 	    ok
@@ -49,56 +50,43 @@ runOutFirst(SenderPort) ->
     runOut(SenderPort, []).
 
 runOut(SenderPort, Clients) ->
-    io:put_chars("Transmitter running\n"),
+    io:put_chars("erl: Transmitter running\n"),
 
     receive
 	{connecting, Socket, Id} ->
-	    io:put_chars("connecting ->forwardin"),
+	    io:put_chars("erl: connecting ->forwardin"),
 	    forwardIn(SenderPort, [connect, Id]),
-	    io:put_chars("->runOut"),
+	    io:put_chars("erl: ->runOut"),
 	    runOut(SenderPort, [{Socket, Id} | Clients]);
-
+	
 	{SenderPort, {data, Binary}} ->
-	    io:put_chars("Python wants to send data!!!!!!!!!!\n"),
-
-	    <<_Check:8, Type:8, _Trash:8, Data/binary>> = Binary,
-	    if 
-		Type =:= 107 -> 
-		    io:put_chars("Found 107, should be 108\n");
-		Type =:= 108 -> 
-		    io:put_chars("Found 108\n"),
-		    <<_Length:32, Id:8, Message/binary>> = Data,
-
-		    io:put_chars("Python wants to send\n"),
-		    forwardOut(Clients, Id, Message),
-
-		    runOut(SenderPort, Clients);
-		true -> 
-						% io:fwrite("~ts~n",Type),
-		    io:put_chars("Unknown or unimplemented message type, no client id can be found\n")
-		    %% forwardOut(OutSocket, Binary),
-	    end,
+	    io:put_chars("erl: Python wants to send data!\nBinary: "),
+	    io:write(Binary),
+	    [Id,Msg]=binary_to_term(Binary),
+	    io:put_chars("\nID: "),
+	    io:write(Id),
+	    io:put_chars("\nMsg: "),
+	    io:write(Msg),
+	    io:put_chars("\n\n"),
+	    forwardOut(Clients, Id, Msg),
 	    runOut(SenderPort, Clients);
-
 	True -> 
-	    io:put_chars("strange message from python\n"),
-	    io:write(True)
+	    io:write(True),
+	    io:put_chars("erl: strange message from python\n")
     after
-        300000 ->
-            {error, timeout}
+	300000 ->
+	    {error, timeout}
     end.
 
 
+
 forwardIn(Port, Data) -> 
-    io:put_chars("Forwarding to python\n"),
-    port_command(Port, term_to_binary(Data)).	%% currently repacks the data (should probably just send original binary)
+    io:put_chars("erl: Forwarding to python\n"),
+    port_command(Port, term_to_binary(Data)).
 
 forwardOut(Clients, Id, Data) -> 
-    io:put_chars("Forwarding data to network\n"),
+    io:put_chars("erl: Forwarding data to network\n"),
     [gen_tcp:send(Socket, Data) || {Socket, CId} <- Clients, CId =:= Id].
-%% frowardOutLoop(Clients, Ids, Data)
 
-frowardOutLoop([{Socket, Id} | Rest], Ids, Data) ->
-    io:put_chars("Forwarding to "),
-    io:write(Id),
-    [gen_tcp:send(Socket, Data) || X <- Ids, X =:= Id].
+
+
