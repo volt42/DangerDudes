@@ -175,7 +175,7 @@ class ddserver(Protocol):
 #        err("---------\n")
         returnvalue=""
         for i in values.keys():
-            returnvalue+='PLAYER '+str(self._world[i])+' '+str(i[0])+' '+str(i[1])+'\n'
+            returnvalue+='PLAYER '+str(self._world[i])+' '+str(i[0]-x)+' '+str(i[1]-y)+'\n'
         return returnvalue
             
     def worldinfo(self,x,y,width,height):
