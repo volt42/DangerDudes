@@ -28,19 +28,19 @@ start(Ip, Port) ->
     io:put_chars("erl: Starting reciever\n"),
     InPid = spawn(fun() -> runIn(Socket, ScriptPort) end),
     gen_tcp:controlling_process(Socket, InPid),	%% Only one process can recieve data from the socket.
-    io:put_chars("erl: Reciever ready\n"),
+%    io:put_chars("erl: Reciever ready\n"),
 
-    io:put_chars("erl: Starting transmitter\n"),
+%    io:put_chars("erl: Starting transmitter\n"),
     runOutFirst(ScriptPort, Socket).
 
 stop(Pid) ->
     Pid ! stop.
 
 runIn(SenderSocket, RecieverPort) ->
-    io:put_chars("erl: Reciever ready and waiting for message\n"),
+%    io:put_chars("erl: Reciever ready and waiting for message\n"),
     case gen_tcp:recv(SenderSocket, 0) of
 	{ok, Data} ->			%% Add interpretation of data?
-	    io:put_chars("erl: Message recieved\n"),
+%	    io:put_chars("erl: Message recieved\n"),
 	    forwardIn(RecieverPort, [data, Data]),
 	    runIn(SenderSocket, RecieverPort);
 	{error, closed} ->
@@ -55,13 +55,13 @@ runOutFirst(SenderPort, OutSocket) ->
     runOut(SenderPort, OutSocket).
 
 runOut(SenderPort, OutSocket) ->
-    io:put_chars("erl: Transmitter running\n"),
+%    io:put_chars("erl: Transmitter running\n"),
 
     receive
         {SenderPort, {data, Binary}} ->
-	    io:put_chars("erl: Python wants to send data!\n"),
-	    io:write(binary_to_term(Binary)),
-	    io:put_chars("\n"),
+%	    io:put_chars("erl: Python wants to send data!\n"),
+%	    io:write(binary_to_term(Binary)),
+%	    io:put_chars("\n"),
 	    forwardOut(OutSocket, binary_to_term(Binary)),
 	    runOut(SenderPort, OutSocket)
     end.
@@ -79,9 +79,9 @@ connect(Address, Port) ->
 
 
 forwardIn(Port, Data) -> 
-    io:put_chars("erl: Forwarding to python\n"),
+%    io:put_chars("erl: Forwarding to python\n"),
     port_command(Port, term_to_binary(Data)).
 
 forwardOut(Socket, Data) -> 
-    io:put_chars("erl: Forwarding data to network\n"),
+%    io:put_chars("erl: Forwarding data to network\n"),
     gen_tcp:send(Socket, Data).

@@ -34,12 +34,11 @@ class ddserver(Protocol):
     _objects = {}
     _width = 0
     _height = 0
-	
     running = True
 	
     _outPort = None
 	
-    # Outgoing functions
+    #Outgoing functions
     def startListener(self):
         listen = threading.Thread(target=self.listener)
         listen.daemon = True
@@ -97,7 +96,7 @@ class ddserver(Protocol):
     
     def executeaction(self,id):
         if not self._objects.has_key(id):
-            print 'bad key'
+            err('bad key')
             return False
         x=self._objects[id].action.splitlines()
         while x != []:
@@ -106,7 +105,7 @@ class ddserver(Protocol):
                 continue
             elif i[0]=='MOVE':
                 try:
-                    self.moveobject(self._objects[id].id,int(i[1]),int(i[2]))
+                    self.moveobject(self._objects[id].id,int(i[1]),-int(i[2]))
                 except:
                     print 'Bad values'
                     
@@ -126,8 +125,6 @@ class ddserver(Protocol):
 
     #Internal functions
     def moveobject(self,id,dx,dy):
-        if(type(id)!=type('a')):
-            return False
         x=self._objects[id].x+dx
         y=self._objects[id].y+dy
         if not (0<x<self._width and 0<y<self._height):
@@ -172,9 +169,13 @@ class ddserver(Protocol):
 
     def subworld(self,x,y,width,height):
         values=self.worldinfo(x,y,width,height)
+#        err(str(values));
+#        err("||||||||||\n")
+#        err(str(self.worldinfo))
+#        err("---------\n")
         returnvalue=""
         for i in values.keys():
-            returnvalue+='Player'+' '+str(i[0])+' '+str(i[1])+'\n'
+            returnvalue+='PLAYER '+str(self._world[i])+' '+str(i[0])+' '+str(i[1])+'\n'
         return returnvalue
             
     def worldinfo(self,x,y,width,height):
@@ -221,16 +222,18 @@ class ddserver(Protocol):
         for i in self._objects.keys():
             obj=self._objects[i]
             self.executeaction(self._objects[i].id)
-            self.send(obj.id,self.subworld(obj.x-100,obj.y-100,200,200))
+            self.send(obj.id,self.subworld(obj.x-200,obj.y-200,400,400))
+            err("\nSubworld: " +self.subworld(obj.x-200,obj.y-200,400,400))
+            err("\nObj: x:"+ str(obj.x)+' y:'+str(obj.y)+' id:'+str(obj.id))
     
 if __name__ == "__main__":
     proto = ddserver()
-    proto.init(1000,1000)
+    proto.init(500,500)
     proto.startListener()
     while(proto.running == True):
         t=time.time()
         proto.tic()
-        t+=5-time.time()
+        t+=0.02-time.time()
         if t>0:
             time.sleep(t)
         else:

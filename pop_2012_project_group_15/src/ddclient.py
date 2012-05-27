@@ -23,7 +23,7 @@ from pygame.locals import *
 from dbmsg import err, exc,msg
 
 pygame.init()
-screen = pygame.display.set_mode((300, 300))
+screen = pygame.display.set_mode((400, 400))
 pygame.display.set_caption('Danger dudes')
 pygame.mouse.set_visible(0)
 
@@ -42,13 +42,23 @@ def load_image(name, colorkey=None):
     return image, image.get_rect()
 
 class DD(pygame.sprite.Sprite):
+    x=0
+    y=0
+    nr=-1
+
     def __init__(self, x, y):
+        self.y=y
+        self.x=x
         pygame.sprite.Sprite.__init__(self)
         self.image, self.rect = load_image('ddf.bmp', -1)
         self.rect.topleft = x, y
-        
+        err("DD__init__: "+str(x)+' '+str(y))
+
     def move(self,x,y):
-        self.rect.topleft=x,y
+        self.x=x
+        self.y=y
+        self.rect.topleft = x, y
+        err("DD.move: "+str(self.x)+' '+str(self.y))
 
     def update(self):
         pass
@@ -78,15 +88,16 @@ class ddclient(Protocol):
             self.handle_worldinfo(msg[1])
 
     def handle_worldinfo(self,worldinfo):
-        err("Client.worldinfo: "+str(worldinfo))
+        err("Client.worldinfo: "+String(worldinfo))
         self.allsprites.empty()
         world=String(worldinfo).splitlines()
-        
+
         for i in world:            
             objectInfo = i.split(' ')
             newObject = objectInfo[0]
-            x = int(objectInfo[1])
-            y = int(objectInfo[2])
+            id= int(objectInfo[1])
+            x = int(objectInfo[2])
+            y = int(objectInfo[3])
 
             if newObject == 'PLAYER':
                 player = DD(x, y)
@@ -94,7 +105,7 @@ class ddclient(Protocol):
             elif newObject == 'STONE':
                 stone = Block(x, y, 'block_circle.bmp')
                 stone.add(self.allsprites)
-        
+       
 class listener(Thread):
     _client = None
     def __init__(self, client):
@@ -108,14 +119,13 @@ def main():
     background = pygame.Surface(screen.get_size())
     background = background.convert()
     background.fill((255, 255, 255))
-
     screen.blit(background, (0, 0))
     pygame.display.flip()
 
     clock = pygame.time.Clock()
 
     while True:
-        clock.tick(60)
+        clock.tick(50)
         
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -123,13 +133,13 @@ def main():
             elif event.type == KEYDOWN and event.key == K_ESCAPE:
                 return
             elif event.type == KEYDOWN and event.key == K_UP:
-                client.sendRequest('MOVE 0 1')
+                client.sendRequest('MOVE 0 2')
             elif event.type == KEYDOWN and event.key == K_RIGHT:
-                client.sendRequest('MOVE 1 0')
+                client.sendRequest('MOVE 2 0')
             elif event.type == KEYDOWN and event.key == K_DOWN:
-                client.sendRequest('MOVE 0 -1')
+                client.sendRequest('MOVE 0 -2')
             elif event.type == KEYDOWN and event.key == K_LEFT:
-                client.sendRequest('MOVE -1 0')
+                client.sendRequest('MOVE -2 0')
             elif event.type == KEYUP and event.key == K_UP:
                 client.sendRequest('MOVE 0 0')
             elif event.type == KEYUP and event.key == K_RIGHT:
@@ -137,7 +147,7 @@ def main():
             elif event.type == KEYUP and event.key == K_DOWN:
                 client.sendRequest('MOVE 0 0')
             elif event.type == KEYUP and event.key == K_LEFT:
-                client.sendRequest('MOVE 0 0')        
+                client.sendRequest('MOVE 0 0')    
     
         screen.blit(background, (0, 0)) 
         client.allsprites.draw(screen)

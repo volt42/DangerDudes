@@ -36,9 +36,9 @@ inLoop(Socket, Id, Pyserver) ->
 	{ok, Data} ->
 						%OK, now send this shit to python
 	    forwardIn(Pyserver, [data, Id, Data]),
-	    io:put_chars("erl: Someting arrived\n"),
-	    io:write(Data),
-	    io:put_chars("\n-----------\n"),
+%	    io:put_chars("erl: Someting arrived\n"),
+%	    io:write(Data),
+%	    io:put_chars("\n-----------\n"),
 	    inLoop(Socket,Id, Pyserver);
 	{error, closed} ->
 	    ok
@@ -56,18 +56,18 @@ runOut(SenderPort, Clients) ->
 	{connecting, Socket, Id} ->
 	    io:put_chars("erl: connecting ->forwardin"),
 	    forwardIn(SenderPort, [connect, Id]),
-	    io:put_chars("erl: ->runOut"),
+%	    io:put_chars("erl: ->runOut"),
 	    runOut(SenderPort, [{Socket, Id} | Clients]);
 	
 	{SenderPort, {data, Binary}} ->
-	    io:put_chars("erl: Python wants to send data!\nBinary: "),
-	    io:write(Binary),
+%	    io:put_chars("erl: Python wants to send data!\nBinary: "),
+%	    io:write(Binary),
 	    [Id,Msg]=binary_to_term(Binary),
-	    io:put_chars("\nID: "),
-	    io:write(Id),
-	    io:put_chars("\nMsg: "),
-	    io:write(Msg),
-	    io:put_chars("\n\n"),
+%	    io:put_chars("\nID: "),
+%	    io:write(Id),
+%	    io:put_chars("\nMsg: "),
+%	    io:write(Msg),
+%	    io:put_chars("\n\n"),
 	    forwardOut(Clients, Id, Msg),
 	    runOut(SenderPort, Clients);
 	True -> 
@@ -81,11 +81,11 @@ runOut(SenderPort, Clients) ->
 
 
 forwardIn(Port, Data) -> 
-    io:put_chars("erl: Forwarding to python\n"),
+%    io:put_chars("erl: Forwarding to python\n"),
     port_command(Port, term_to_binary(Data)).
 
 forwardOut(Clients, Id, Data) -> 
-    io:put_chars("erl: Forwarding data to network\n"),
+ %   io:put_chars("erl: Forwarding data to network\n"),
     [gen_tcp:send(Socket, Data) || {Socket, CId} <- Clients, CId =:= Id].
 
 
