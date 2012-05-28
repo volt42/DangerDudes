@@ -63,7 +63,7 @@ class ddserver(Protocol):
         elif Atom(message[0]) =="connect":
             self.connect(message[1])
         elif Atom(message[0])=="data":
-            err(str(message[2])+'\n'+str(message[1])+'\n'+str(message[0])+'\n'+str(message))
+            err('handle: '+str(message[2])+'\n'+str(message[1])+'\n'+str(message[0])+'\n'+str(message))
             self.setaction(int(message[1]),message[2])
         else:
             err("Server:handle() got something it did not understand: "+str(message))
@@ -76,10 +76,7 @@ class ddserver(Protocol):
         self._objects={}
               
     def connect(self,id):
-        obj = gameobject()
-        obj.health=100
-        obj.type ='PLAYER'
-        obj.action="IDLE"
+        obj = Player()
         obj.id=id
         self._objects[id]=obj
         if not self._objects.has_key(obj.id):
@@ -98,30 +95,28 @@ class ddserver(Protocol):
         if not self._objects.has_key(id):
             err('bad key')
             return False
-        x=self._objects[id].action.splitlines()
-        while x != []:
-            i=x.pop().split(' ')
-            if i[0]=='IDLE':
-                continue
-            elif i[0]=='MOVE':
-                try:
-                    self.moveobject(self._objects[id].id,int(i[1]),-int(i[2]))
-                except:
-                    print 'Bad values'
+        
+        x=self._objects[id].getCmd()
+        if not x:
+            return False
+        if x[0]=='MOVE':
+            self.moveobject(id,x[1],x[2])
+            return True
+        if x[0]=='PLANTBOMB':
+            return True
+        if x[0]=='FIRE':
+            return True
+        if x[0]=='IDLE':
+            return True
+
+        msg("executeaction do not know how to handle:\n"+self._objects[id].action)
+        return False
                     
     def setaction(self,id,action):
         err("Setting new action: "+str(id)+' '+str(action))
-        try:
-            if not self._objects.has_key(id):
-                return False
-            i=action.split(' ')
-            if i[0] =='MOVE':
-                speed=math.sqrt((int(i[1]))**2 + (int(i[2]))**2)
-                if speed < MaxSpeed[self._objects[id].type]:
-                    self._objects[id].action = action
-        except:
-            pass
-            err('this is bullshit, send better stuff to setaction!')
+        if not self._objects.has_key(id):
+            return False
+        self._objects[id].setCmd(action)
 
     #Internal functions
     def moveobject(self,id,dx,dy):
@@ -145,10 +140,10 @@ class ddserver(Protocol):
             return True
         return False
 
-    def collision(self,id,x,y,radius=5):
+    def collision(self,id,x,y,radius=50):#radius tells us the size of the area we should check for collisions
         if not (self._objects.has_key(id) and 0<=x<self._width and 0<=y<self._height):
-            return 'Bad argument'
-        size=Size[self._objects[id].type]
+            return True
+        size=self._objects[id].size
         targetsquare=self.worldinfo(int(x-radius),int(y-radius),int(x+radius),int(y+radius))
         #test distance to all objects within the radius
         for i in targetsquare.keys():
@@ -156,11 +151,11 @@ class ddserver(Protocol):
                 #print i
                 continue
             else:
-                #Square collision detection
+                #Square collision detection:
                 #dist = abs(x-i[0])+abs(y-i[1])
-                #Circular collision detection
+                #Circular collision detection:
                 dist= math.sqrt((x-i[0])**2+(y-i[1])**2)
-                if dist < (Size[self._objects[id].type]+Size[self._objects[targetsquare[i]].type])/2:
+                if dist < (self._objects[id].size+self._objects[targetsquare[i]].size)/2:
                     return True
         return False
 
@@ -175,7 +170,7 @@ class ddserver(Protocol):
 #        err("---------\n")
         returnvalue=""
         for i in values.keys():
-            returnvalue+='PLAYER '+str(self._world[i])+' '+str(i[0]-x)+' '+str(i[1]-y)+'\n'
+            returnvalue+=self._objects[self._world[i]].toString(x,y)
         return returnvalue
             
     def worldinfo(self,x,y,width,height):
@@ -223,8 +218,8 @@ class ddserver(Protocol):
             obj=self._objects[i]
             self.executeaction(self._objects[i].id)
             self.send(obj.id,self.subworld(obj.x-200,obj.y-200,400,400))
-            err("\nSubworld: " +self.subworld(obj.x-200,obj.y-200,400,400))
-            err("\nObj: x:"+ str(obj.x)+' y:'+str(obj.y)+' id:'+str(obj.id))
+           # err("\nSubworld: " +self.subworld(obj.x-200,obj.y-200,400,400))
+           # err("\nObj: x:"+ str(obj.x)+' y:'+str(obj.y)+' id:'+str(obj.id))
     
 if __name__ == "__main__":
     proto = ddserver()

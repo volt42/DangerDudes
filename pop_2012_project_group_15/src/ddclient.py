@@ -21,6 +21,7 @@ from erlport import *
 from threading import Thread
 from pygame.locals import *
 from dbmsg import err, exc,msg
+from gamerules import *
 
 pygame.init()
 screen = pygame.display.set_mode((400, 400))
@@ -52,13 +53,13 @@ class DD(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.image, self.rect = load_image('ddf.bmp', -1)
         self.rect.topleft = x, y
-        err("DD__init__: "+str(x)+' '+str(y))
+       # err("DD__init__: "+str(x)+' '+str(y))
 
     def move(self,x,y):
         self.x=x
         self.y=y
         self.rect.topleft = x, y
-        err("DD.move: "+str(self.x)+' '+str(self.y))
+       # err("DD.move: "+str(self.x)+' '+str(self.y))
 
     def update(self):
         pass
@@ -81,30 +82,40 @@ class ddclient(Protocol):
         if self._port:
             self._port.write(action)
         
-    def handle(self, port, msg):
-        if(Atom(msg[0]) == "init"):
+    def handle(self, port, message):
+        if(Atom(message[0]) == "init"):
             self._port=port  
         else:
-            self.handle_worldinfo(msg[1])
+            self.handle_worldinfo(message[1])
 
     def handle_worldinfo(self,worldinfo):
-        err("Client.worldinfo: "+String(worldinfo))
+#        err("Client.worldinfo: "+String(worldinfo))
         self.allsprites.empty()
         world=String(worldinfo).splitlines()
+    
+        player=Player()
+        stone=Stone()
+        bomb=Bomb()
 
         for i in world:            
-            objectInfo = i.split(' ')
-            newObject = objectInfo[0]
-            id= int(objectInfo[1])
-            x = int(objectInfo[2])
-            y = int(objectInfo[3])
+            if player.isPlayer(i):
+                player.fromString(i)
+                obj=DD(player.x,player.y)                
+                
+            elif stone.isStone(i):
+                stone.fromString(i)
+                #change this obj!
+                obj=DD(stone.x,stone.y)
 
-            if newObject == 'PLAYER':
-                player = DD(x, y)
-                player.add(self.allsprites)
-            elif newObject == 'STONE':
-                stone = Block(x, y, 'block_circle.bmp')
-                stone.add(self.allsprites)
+            elif bomb.isBomb(i):
+                bomb.fromString(i)
+                #Change this obj!
+                obj=DD(bomb.x,bomb.y)
+            else:
+                msg("handle_worldinfo got some crap:\n"+i)
+                continue
+            obj.add(self.allsprites)
+
        
 class listener(Thread):
     _client = None
