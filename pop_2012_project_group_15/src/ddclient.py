@@ -157,7 +157,10 @@ class ddclient(Protocol):
                 obj=DD(player.x,player.y)                
                 
             elif stone.isStone(i):
+
                 stone.fromString(i)
+                if stone.x>200 or stone.y>200:
+                    err("BAD stone: "+stone.toString())
                 obj=Block(stone.x,stone.y,stone.image)
 
             elif bomb.isBomb(i):
@@ -168,7 +171,7 @@ class ddclient(Protocol):
                 msg("handle_worldinfo got some crap:\n"+i)
                 continue
             obj.add(self.allsprites)
-        err(str(world))
+       # err(str(world))
        
 class listener(Thread):
     _client = None

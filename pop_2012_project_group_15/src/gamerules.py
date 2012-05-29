@@ -119,7 +119,7 @@ class Bomb(Gameobj):
     def fromString(self,string):
         s=string.split(' ')
         if not s[0] == self.type:
-            msg("bomb.fromString got something that was not a stone:\n"+string)
+            msg("bomb.fromString got something that was not a bomb:\n"+string)
         self.id = int(s[1])
         self.x = int(s[2])
         self.y = int(s[3])
@@ -138,7 +138,7 @@ class Stone(Gameobj):
             return False
         return True
 
-    def toString(self, xoffset, yoffset):
+    def toString(self, xoffset=0, yoffset=0):
         value=self.type+' '
         value+=str(self.id)+' '
         value+=str(self.x-xoffset)+' '

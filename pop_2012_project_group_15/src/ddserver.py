@@ -103,19 +103,25 @@ class ddserver(Protocol):
                self.addobject(obj)
                break
    
-     #This function needs to be fixed
+    #This function needs to be fixed
     def init(self,width,height):
         self._width =width
         self._height=height
         self._world={}
         self._objects={}
-
+        
+        class count():
+            x=100
+            def next(self):
+                self.x+=1
+                return self.x
+        c=count()
         for i in range(1,height,int(height/25)):
            # break
             stone=Stone()
             stone.x=1
             stone.y=i
-            stone.id=1000+i/int(height/25)
+            stone.id=c.next()
             self._world[(stone.x,stone.y)]=stone.id
             self._objects[stone.id]=stone
 
@@ -124,10 +130,7 @@ class ddserver(Protocol):
             stone=Stone()
             stone.x=self._width-1
             stone.y=i
-            stone.id=1500+i/int(height/25)
-            if(self._objects.has_key(stone.id)):
-                err("upptaget id")
-                continue
+            stone.id=c.next()
             self._world[(stone.x,stone.y)]=stone.id
             self._objects[stone.id]=stone
 
@@ -137,10 +140,7 @@ class ddserver(Protocol):
             stone=Stone()
             stone.x=i
             stone.y=self._height-1
-            stone.id=2000+i/int(width/25)
-            if(self._objects.has_key(stone.id)):
-                err("upptaget id")
-                continue
+            stone.id=c.next()
             self._world[(stone.x,stone.y)]=stone.id
             self._objects[stone.id]=stone
             
@@ -149,10 +149,7 @@ class ddserver(Protocol):
             stone=Stone()
             stone.x=i
             stone.y=1
-            stone.id=2500+i/int(width/25)
-            if(self._objects.has_key(stone.id)):
-                err("upptaget id")
-                continue
+            stone.id=c.next()
             self._world[(stone.x,stone.y)]=stone.id
             self._objects[stone.id]=stone
 
@@ -160,6 +157,7 @@ class ddserver(Protocol):
     def connect(self,id):
         obj = Player()
         obj.id=id
+        obj.lastsent=""
         self._objects[id]=obj
         if not self._objects.has_key(obj.id):
             return False
@@ -272,7 +270,7 @@ class ddserver(Protocol):
 
         # This is not effective at all, but it works
         for i in self._world.iterkeys():
-            if x <= i[0] <= x+width and y <= i[1] <= x+height:
+            if x <= i[0] <= x+width and y <= i[1] <= y+height:
                 value[i]=self._world[i]
         return value
 
@@ -314,7 +312,10 @@ class ddserver(Protocol):
             if obj.type == "PLAYER":
                 self.executeaction(self._objects[i].id)
                 if send==True:
-                    self.send(obj.id,self.subworld(obj.x-200,obj.y-200,400,400))
+                    x=self.subworld(obj.x-200,obj.y-200,400,400)
+                    if not x==self._objects[i].lastsent:
+                        self._objects[i].lastsent=x
+                        self.send(obj.id,x)
            # err("\nSubworld: " +self.subworld(obj.x-200,obj.y-200,400,400))
            # err("\nObj: x:"+ str(obj.x)+' y:'+str(obj.y)+' id:'+str(obj.id))
     
