@@ -57,10 +57,11 @@ class DD(pygame.sprite.Sprite):
         self.rect.topleft = x, y
        # err("DD__init__: "+str(x)+' '+str(y))
 
-    def move(self,x,y):
+    def move(self,x,y,angle=0):
         self.x=x
         self.y=y
         self.rect.topleft = x, y
+        self.angle=angle
        # err("DD.move: "+str(self.x)+' '+str(self.y))
 
     def update(self):
@@ -144,9 +145,9 @@ class ddclient(Protocol):
         player=Player()
         stone=Stone()
         bomb=Bomb()
-
+ 
+       # err(str(world))
         for i in world:        
-            err(str(i))
             if player.isPlayer(i):
                 player.fromString(i)
                 obj=DD(player.x,player.y)                
@@ -185,7 +186,7 @@ def main():
     clock = pygame.time.Clock()
 
     while True:
-        clock.tick(5)
+        clock.tick(50)
         
         for event in pygame.event.get():
             if event.type == QUIT:

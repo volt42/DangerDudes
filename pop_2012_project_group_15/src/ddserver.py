@@ -49,7 +49,7 @@ class ddserver(Protocol):
 
     def send(self,id,info):
         if self._outPort:
-           # msg(str(info))
+           # err(str(info))
             self._outPort.write([id,info])
 
 
@@ -78,7 +78,8 @@ class ddserver(Protocol):
         obj.x = x
         obj.y = y
         obj.image = random.randint(1,3)
-        for i in range(100, 1000):
+        obj.size=size
+        for i in range(200, 1000):
             if not self._objects.has_key(i):
                obj.id=i
                self.addobject(obj)
@@ -90,20 +91,33 @@ class ddserver(Protocol):
         self._height=height
         self._world={}
         self._objects={}
+
         for i in range(1,width,20):
-            self.addStone(i,1,20)
-            self.addStone(i,height-1,20)
+           # break
+            stone=Stone()
+            stone.x=1
+            stone.y=i
+            stone.id=100+i
+            self._world[(stone.x,stone.y)]=stone.id
+            self._objects[stone.id]=stone
+            stone.x=width-1
+            stone.id=200+i
+            self._world[(stone.x,stone.y)]=stone.id
+            self._objects[stone.id]=stone
+
         for i in range(20,height,20):
-            self.addStone(1,i,20)
-            self.addStone(width-1,i,20)
-
-
-
-        for i in range(1, 5):
-            self.addStone(random.randint(0,500), random.randint(0,500), random.randint(10,500))
-
-
-              
+           # break
+            stone=Stone()
+            stone.x=i
+            stone.y=1
+            stone.id=300+i
+            self._world[(stone.x,stone.y)]=stone.id
+            self._objects[stone.id]=stone
+            stone.y=height-1
+            stone.id=300+i
+            self._world[(stone.x,stone.y)]=stone.id
+            self._objects[stone.id]=stone
+             
     def connect(self,id):
         obj = Player()
         obj.id=id
@@ -170,7 +184,7 @@ class ddserver(Protocol):
         
     def addobject(self,obj): 
         if(self.collision(obj,obj.x,obj.y) == False):
-            self._world[(x,y)] = obj.id
+            self._world[(obj.x,obj.y)] = obj.id
             self._objects[obj.id]=obj
             return True
         return False
@@ -178,6 +192,7 @@ class ddserver(Protocol):
     def collision(self,id,x,y,radius=100):#radius tells us the size of the area we should check for collisions
         if not (self._objects.has_key(id) and 0<=x<self._width and 0<=y<self._height):
             return True
+#        err("Collision test step 1 complete\n")
         size=self._objects[id].size
         targetsquare=self.worldinfo(int(x-radius),int(y-radius),int(x+radius),int(y+radius))
         #test distance to all objects within the radius
@@ -188,6 +203,9 @@ class ddserver(Protocol):
             else:
                 #Square collision detection:
                 dist = abs(x-i[0])+abs(y-i[1])
+#                err("dist: "+str(dist))
+#                err("x,y= "+str(x)+', '+str(y))
+#                err("i[0],i[1]= "+str(i[0])+', '+str(i[1]))
                 #Circular collision detection:
                 #dist= math.sqrt((x-i[0])**2+(y-i[1])**2)
                 if dist < (self._objects[id].size+self._objects[targetsquare[i]].size)/2:
@@ -206,6 +224,8 @@ class ddserver(Protocol):
         returnvalue=""
         for i in values.keys():
             returnvalue+=self._objects[self._world[i]].toString(x,y)
+   #     err(str(self._objects))
+   #     err(returnvalue)
         return returnvalue
             
     def worldinfo(self,x,y,width,height):
