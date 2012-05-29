@@ -59,7 +59,7 @@ class ddserver(Protocol):
                 part="CONTINUE\n"
                 for i in xrange(7,len(x)):
                     part+=x[+i]+'\n'
-               # msg(str(part))
+                time.sleep(0.02)
                 self.send(id,part)
                 return True
 #            err('Send id: '+str(id))
@@ -110,19 +110,19 @@ class ddserver(Protocol):
         self._world={}
         self._objects={}
 
-        for i in range(1,10,1):
+        for i in range(1,25,1):
            # break
             stone=Stone()
             stone.x=1
-            stone.y=i
+            stone.y=i*20
             stone.id=100+i
             self._world[(stone.x,stone.y)]=stone.id
             self._objects[stone.id]=stone
 
-        for i in range(1,10,1):
+        for i in range(1,250,1):
            # break
             stone=Stone()
-            stone.x=i
+            stone.x=i*20
             stone.y=1
             stone.id=160+i
             self._world[(stone.x,stone.y)]=stone.id
