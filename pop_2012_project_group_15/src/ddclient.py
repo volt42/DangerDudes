@@ -145,14 +145,15 @@ class ddclient(Protocol):
         stone=Stone()
         bomb=Bomb()
 
-        for i in world:            
+        for i in world:        
+            err(str(i))
             if player.isPlayer(i):
                 player.fromString(i)
                 obj=DD(player.x,player.y)                
                 
             elif stone.isStone(i):
                 stone.fromString(i)
-                #change this obj!
+                err("got stone!")
                 obj=Block(stone.x,stone.y,stone.image)
 
             elif bomb.isBomb(i):
@@ -184,7 +185,7 @@ def main():
     clock = pygame.time.Clock()
 
     while True:
-        clock.tick(50)
+        clock.tick(5)
         
         for event in pygame.event.get():
             if event.type == QUIT:

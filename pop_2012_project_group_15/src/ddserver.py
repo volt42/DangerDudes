@@ -90,6 +90,14 @@ class ddserver(Protocol):
         self._height=height
         self._world={}
         self._objects={}
+        for i in range(1,width,20):
+            self.addStone(i,1,20)
+            self.addStone(i,height-1,20)
+        for i in range(20,height,20):
+            self.addStone(1,i,20)
+            self.addStone(width-1,i,20)
+
+
 
         for i in range(1, 5):
             self.addStone(random.randint(0,500), random.randint(0,500), random.randint(10,500))
@@ -122,6 +130,11 @@ class ddserver(Protocol):
             return False
         if x[0]=='MOVE':
             self.moveobject(id,x[1],x[2])
+            try:
+                self._objects[id].angle=x[3]
+            except:
+                self._objects[id].angle=0
+                
             return True
         if x[0]=='PLANTBOMB':
             return True
