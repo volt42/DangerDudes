@@ -25,8 +25,8 @@
 from gamerules import *
 import random, math, os,time
 from erlport import Port,Protocol,String,Atom
-import threading,sys
-from dbmsg import err, exc
+import threading,sys, dbmsg
+from dbmsg import err, exc, msg
 
 class ddserver(Protocol):
     #internal variables
@@ -47,10 +47,11 @@ class ddserver(Protocol):
     def listener(self):
         self.run(Port(use_stdio=True))
 
-    def send(self,id,msg):
+    def send(self,id,info):
         if self._outPort:
-            err("Sending ID: "+str(id)+". msg: "+str(msg)+"\n")
-            self._outPort.write([id,msg])
+           # msg(str(info))
+            self._outPort.write([id,info])
+
 
     def sendworldinfo(self,target,x,y):
         send_to_client(self.worldinfo(x,y,200,200))
@@ -58,15 +59,30 @@ class ddserver(Protocol):
     #Incomming functions
         
     def handle(self,port,message):
+        #msg(str(message))
+
         if Atom(message[0]) == "init":
             self._outPort = port
         elif Atom(message[0]) =="connect":
             self.connect(message[1])
         elif Atom(message[0])=="data":
-            err('handle: '+str(message[2])+'\n'+str(message[1])+'\n'+str(message[0])+'\n'+str(message))
+            #msg(str(message))
+            #err('handle: '+str(message[2])+'\n'+str(message[1])+'\n'+str(message[0])+'\n'+str(message))
             self.setaction(int(message[1]),message[2])
         else:
             err("Server:handle() got something it did not understand: "+str(message))
+
+    #does no collision detection
+    def addStone(self, x, y, size):
+        obj = Stone()
+        obj.x = x
+        obj.y = y
+        obj.image = random.randint(1,3)
+        for i in range(100, 1000):
+            if not self._objects.has_key(i):
+               obj.id=i
+               self.addobject(obj)
+               break
    
      #This function needs to be fixed
     def init(self,width,height):
@@ -74,6 +90,11 @@ class ddserver(Protocol):
         self._height=height
         self._world={}
         self._objects={}
+
+        for i in range(1, 5):
+            self.addStone(random.randint(0,500), random.randint(0,500), random.randint(10,500))
+
+
               
     def connect(self,id):
         obj = Player()
@@ -121,7 +142,7 @@ class ddserver(Protocol):
     #Internal functions
     def moveobject(self,id,dx,dy):
         x=self._objects[id].x+dx
-        y=self._objects[id].y+dy
+        y=self._objects[id].y-dy
         if not (0<x<self._width and 0<y<self._height):
             return False
         if not self.collision(id,x,y):
@@ -134,13 +155,14 @@ class ddserver(Protocol):
         return False
         
         
-    def addobject(self,obj,x,y): 
-        if(self.collision(obj,x,y) == False):
-            self._world[(x,y)] = obj
+    def addobject(self,obj): 
+        if(self.collision(obj,obj.x,obj.y) == False):
+            self._world[(x,y)] = obj.id
+            self._objects[obj.id]=obj
             return True
         return False
 
-    def collision(self,id,x,y,radius=50):#radius tells us the size of the area we should check for collisions
+    def collision(self,id,x,y,radius=100):#radius tells us the size of the area we should check for collisions
         if not (self._objects.has_key(id) and 0<=x<self._width and 0<=y<self._height):
             return True
         size=self._objects[id].size
@@ -152,9 +174,9 @@ class ddserver(Protocol):
                 continue
             else:
                 #Square collision detection:
-                #dist = abs(x-i[0])+abs(y-i[1])
+                dist = abs(x-i[0])+abs(y-i[1])
                 #Circular collision detection:
-                dist= math.sqrt((x-i[0])**2+(y-i[1])**2)
+                #dist= math.sqrt((x-i[0])**2+(y-i[1])**2)
                 if dist < (self._objects[id].size+self._objects[targetsquare[i]].size)/2:
                     return True
         return False
@@ -216,8 +238,10 @@ class ddserver(Protocol):
     def tic(self):
         for i in self._objects.keys():
             obj=self._objects[i]
-            self.executeaction(self._objects[i].id)
-            self.send(obj.id,self.subworld(obj.x-200,obj.y-200,400,400))
+
+            if obj.type == "PLAYER":
+                self.executeaction(self._objects[i].id)
+                self.send(obj.id,self.subworld(obj.x-200,obj.y-200,400,400))
            # err("\nSubworld: " +self.subworld(obj.x-200,obj.y-200,400,400))
            # err("\nObj: x:"+ str(obj.x)+' y:'+str(obj.y)+' id:'+str(obj.id))
     

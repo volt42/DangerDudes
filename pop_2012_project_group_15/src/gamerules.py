@@ -10,6 +10,9 @@ class Gameobj():
     maxspeed=0
     image=1
     action='IDLE'
+
+    def getCmd(self):
+        pass
     
 
 class Player(Gameobj):
@@ -25,18 +28,21 @@ class Player(Gameobj):
             return False
         return True
     def validCmd(self,cmd):
-        c=cmd.split(' ')
-        if c[0]=='IDLE':
-            return True
-        if c[0]=='MOVE':
-            if type(int(c[1]))==type(1) and type(int(c[2]))==type(1):
+        try:
+            c=cmd.split(' ')
+            if c[0]=='IDLE':
+                return True
+            if c[0]=='MOVE':
+                if type(int(c[1]))==type(1) and type(int(c[2]))==type(1):
+                    return True
+                return False
+            if c[0] =='PLANTBOMB':
+                return True
+            if c[0]=='FIRE':
                 return True
             return False
-        if c[0] =='PLANTBOMB':
-            return True
-        if c[0]=='FIRE':
-            return True
-        return False
+        except:
+            return False
 
     def setCmd(self,cmd):
         if self.validCmd(cmd):
@@ -132,7 +138,7 @@ class Stone(Gameobj):
             return False
         return True
 
-    def toString(self):
+    def toString(self, _x, _y):
         value=self.type+' '
         value+=str(self.id)+' '
         value+=str(self.x)+' '
