@@ -92,7 +92,7 @@ class ddserver(Protocol):
         self._world={}
         self._objects={}
 
-        for i in range(1,width,20):
+        for i in range(1,width,200):
            # break
             stone=Stone()
             stone.x=1
@@ -105,7 +105,7 @@ class ddserver(Protocol):
             self._world[(stone.x,stone.y)]=stone.id
             self._objects[stone.id]=stone
 
-        for i in range(20,height,20):
+        for i in range(20,height,200):
            # break
             stone=Stone()
             stone.x=i
@@ -268,13 +268,14 @@ class ddserver(Protocol):
         self.printworld()
     
 
-    def tic(self):
+    def tic(self,send=True):
         for i in self._objects.keys():
             obj=self._objects[i]
 
             if obj.type == "PLAYER":
                 self.executeaction(self._objects[i].id)
-                self.send(obj.id,self.subworld(obj.x-200,obj.y-200,400,400))
+                if send==True:
+                    self.send(obj.id,self.subworld(obj.x-200,obj.y-200,400,400))
            # err("\nSubworld: " +self.subworld(obj.x-200,obj.y-200,400,400))
            # err("\nObj: x:"+ str(obj.x)+' y:'+str(obj.y)+' id:'+str(obj.id))
     
@@ -282,10 +283,15 @@ if __name__ == "__main__":
     proto = ddserver()
     proto.init(500,500)
     proto.startListener()
+    send=True
     while(proto.running == True):
         t=time.time()
         proto.tic()
         t+=0.02-time.time()
+        if send==True:
+            send = False
+        else:
+            send=True
         if t>0:
             time.sleep(t)
         else:
