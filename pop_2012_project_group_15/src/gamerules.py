@@ -138,11 +138,11 @@ class Stone(Gameobj):
             return False
         return True
 
-    def toString(self, _x, _y):
+    def toString(self, xoffset, yoffset):
         value=self.type+' '
         value+=str(self.id)+' '
-        value+=str(self.x)+' '
-        value+=str(self.y)+' '
+        value+=str(self.x-xoffset)+' '
+        value+=str(self.y-yoffset)+' '
         value+=str(self.health)+' '
         value+=str(self.image)+ '\n'
         return value

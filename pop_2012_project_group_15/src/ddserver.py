@@ -54,7 +54,7 @@ class ddserver(Protocol):
                 part=""
                 for i in xrange(0,7):
                     part+=x[i]+'\n'
-              #  msg(str(part))
+                err(str(part))
                 self._outPort.write([id,part])
                 part="CONTINUE\n"
                 for i in xrange(7,len(x)):
@@ -110,23 +110,52 @@ class ddserver(Protocol):
         self._world={}
         self._objects={}
 
-        for i in range(1,25,1):
+        for i in range(1,height,int(height/25)):
            # break
             stone=Stone()
             stone.x=1
-            stone.y=i*20
-            stone.id=100+i
+            stone.y=i
+            stone.id=1000+i/int(height/25)
             self._world[(stone.x,stone.y)]=stone.id
             self._objects[stone.id]=stone
 
-        for i in range(1,250,1):
+        for i in range(1,height,int(height/25)):
            # break
             stone=Stone()
-            stone.x=i*20
-            stone.y=1
-            stone.id=160+i
+            stone.x=self._width-1
+            stone.y=i
+            stone.id=1500+i/int(height/25)
+            if(self._objects.has_key(stone.id)):
+                err("upptaget id")
+                continue
             self._world[(stone.x,stone.y)]=stone.id
             self._objects[stone.id]=stone
+
+
+        for i in range(1,width,int(width/25)):
+           # break
+            stone=Stone()
+            stone.x=i
+            stone.y=self._height-1
+            stone.id=2000+i/int(width/25)
+            if(self._objects.has_key(stone.id)):
+                err("upptaget id")
+                continue
+            self._world[(stone.x,stone.y)]=stone.id
+            self._objects[stone.id]=stone
+            
+        for i in range(1,width,int(width/25)):
+           # break
+            stone=Stone()
+            stone.x=i
+            stone.y=1
+            stone.id=2500+i/int(width/25)
+            if(self._objects.has_key(stone.id)):
+                err("upptaget id")
+                continue
+            self._world[(stone.x,stone.y)]=stone.id
+            self._objects[stone.id]=stone
+
              
     def connect(self,id):
         obj = Player()
