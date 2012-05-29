@@ -108,7 +108,7 @@ class DD(pygame.sprite.Sprite):
         
 class Block(pygame.sprite.Sprite):
     def __init__(self, x, y, image):
-        name = "block_circle.bmp"
+        name = "dd.bmp"
         if image == 1:
             name = "block_circle.bmp"
         elif image == 2:
@@ -123,7 +123,7 @@ class Block(pygame.sprite.Sprite):
         
 class ddclient(Protocol):
     _port = None
-    _hero = DD(190,190)
+    _hero = DD(200,200)
     allsprites = pygame.sprite.RenderPlain(_hero)
 
     def sendRequest(self,action):
@@ -138,9 +138,11 @@ class ddclient(Protocol):
 
     def handle_worldinfo(self,worldinfo):
   #      msg("Client.worldinfo: "+String(worldinfo))
-        self.allsprites.empty()
-        self._hero.add(self.allsprites)
         world=String(worldinfo).splitlines()
+        if not world[0]=='CONTINUE':
+            self.allsprites.empty()
+#            self._hero.add(self.allsprites)
+
     
         player=Player()
         stone=Stone()
@@ -148,13 +150,14 @@ class ddclient(Protocol):
  
        # err(str(world))
         for i in world:        
+            if i=='CONTINUE':
+                continue
             if player.isPlayer(i):
                 player.fromString(i)
                 obj=DD(player.x,player.y)                
                 
             elif stone.isStone(i):
                 stone.fromString(i)
-                err("got stone!")
                 obj=Block(stone.x,stone.y,stone.image)
 
             elif bomb.isBomb(i):
@@ -165,7 +168,7 @@ class ddclient(Protocol):
                 msg("handle_worldinfo got some crap:\n"+i)
                 continue
             obj.add(self.allsprites)
-
+        err(str(world))
        
 class listener(Thread):
     _client = None

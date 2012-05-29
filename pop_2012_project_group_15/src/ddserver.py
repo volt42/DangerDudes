@@ -49,8 +49,26 @@ class ddserver(Protocol):
 
     def send(self,id,info):
         if self._outPort:
-           # err(str(info))
+            x=info.splitlines()
+            if(len(x)>7):
+                part=""
+                for i in xrange(0,7):
+                    part+=x[i]+'\n'
+              #  msg(str(part))
+                self._outPort.write([id,part])
+                part="CONTINUE\n"
+                for i in xrange(7,len(x)):
+                    part+=x[+i]+'\n'
+               # msg(str(part))
+                self.send(id,part)
+                return True
+#            err('Send id: '+str(id))
+#            err('Message Length: '+str(len(str(info))))
+#            if(len(str(info)) >255):
+#                err("to much data "+str(len(str(info))))
+#                return False
             self._outPort.write([id,info])
+            return True
 
 
     def sendworldinfo(self,target,x,y):
@@ -92,7 +110,7 @@ class ddserver(Protocol):
         self._world={}
         self._objects={}
 
-        for i in range(1,width,200):
+        for i in range(1,10,1):
            # break
             stone=Stone()
             stone.x=1
@@ -100,21 +118,13 @@ class ddserver(Protocol):
             stone.id=100+i
             self._world[(stone.x,stone.y)]=stone.id
             self._objects[stone.id]=stone
-            stone.x=width-1
-            stone.id=200+i
-            self._world[(stone.x,stone.y)]=stone.id
-            self._objects[stone.id]=stone
 
-        for i in range(20,height,200):
+        for i in range(1,10,1):
            # break
             stone=Stone()
             stone.x=i
             stone.y=1
-            stone.id=300+i
-            self._world[(stone.x,stone.y)]=stone.id
-            self._objects[stone.id]=stone
-            stone.y=height-1
-            stone.id=300+i
+            stone.id=160+i
             self._world[(stone.x,stone.y)]=stone.id
             self._objects[stone.id]=stone
              
@@ -283,15 +293,16 @@ if __name__ == "__main__":
     proto = ddserver()
     proto.init(500,500)
     proto.startListener()
-    send=True
+    x=0
     while(proto.running == True):
         t=time.time()
-        proto.tic()
         t+=0.02-time.time()
-        if send==True:
-            send = False
+        if x>5:
+            proto.tic(True)
+            x=0
         else:
-            send=True
+            proto.tic(False)
+            x+=1
         if t>0:
             time.sleep(t)
         else:
