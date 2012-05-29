@@ -59,7 +59,7 @@ class ddserver(Protocol):
                 part="CONTINUE\n"
                 for i in xrange(7,len(x)):
                     part+=x[+i]+'\n'
-                time.sleep(0.02)
+                time.sleep(0.025)
                 self.send(id,part)
                 return True
 #            err('Send id: '+str(id))
@@ -116,39 +116,43 @@ class ddserver(Protocol):
                 self.x+=1
                 return self.x
         c=count()
-        for i in range(1,height,int(height/25)):
+        for i in range(1,height,int(height/10)):
            # break
             stone=Stone()
             stone.x=1
             stone.y=i
+            stone.size=75
             stone.id=c.next()
             self._world[(stone.x,stone.y)]=stone.id
             self._objects[stone.id]=stone
 
-        for i in range(1,height,int(height/25)):
+        for i in range(1,height,int(height/10)):
            # break
             stone=Stone()
             stone.x=self._width-1
             stone.y=i
+            stone.size=75
             stone.id=c.next()
             self._world[(stone.x,stone.y)]=stone.id
             self._objects[stone.id]=stone
 
 
-        for i in range(1,width,int(width/25)):
+        for i in range(1,width,int(width/10)):
            # break
             stone=Stone()
             stone.x=i
             stone.y=self._height-1
+            stone.size=75
             stone.id=c.next()
             self._world[(stone.x,stone.y)]=stone.id
             self._objects[stone.id]=stone
             
-        for i in range(1,width,int(width/25)):
+        for i in range(1,width,int(width/10)):
            # break
             stone=Stone()
             stone.x=i
             stone.y=1
+            stone.size=75
             stone.id=c.next()
             self._world[(stone.x,stone.y)]=stone.id
             self._objects[stone.id]=stone
@@ -321,7 +325,7 @@ class ddserver(Protocol):
     
 if __name__ == "__main__":
     proto = ddserver()
-    proto.init(500,500)
+    proto.init(1000,1000)
     proto.startListener()
     x=0
     while(proto.running == True):
