@@ -40,7 +40,7 @@ class Player(Gameobj):
     size=10
     type="PLAYER"
 
-    def __init__(self):
+    def __init__(self, loadImage=False):
         name = "dd.bmp"
             
         pygame.sprite.Sprite.__init__(self)
@@ -155,11 +155,11 @@ class Stone(Gameobj):
     size=50
     imageId=1
     type='STONE'
-    def __init__(self):
+    def __init__(self, loadImage=False):
         name = "block_circle.bmp"
-            
-        pygame.sprite.Sprite.__init__(self)
-        self.image, self.rect = load_image(name, (255,255,255))
+        if(loadImage):    
+            pygame.sprite.Sprite.__init__(self)
+            self.image, self.rect = load_image(name, (255,255,255))
 
     def isStone(self,str):
         s=str.split(' ')
@@ -185,7 +185,7 @@ class Stone(Gameobj):
         self.y = int(s[3])
         self.health = int(s[4])
         self.imageId = int(s[5])
-        self.rect.topleft = x, y
+        self.rect.topleft = self.x, self.y
 
 
 

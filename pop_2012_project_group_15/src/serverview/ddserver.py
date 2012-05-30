@@ -29,10 +29,7 @@ from erlport import Port,Protocol,String,Atom
 import threading,sys, dbmsg
 from dbmsg import err, exc, msg
 
-pygame.init()
-screen = pygame.display.set_mode((1200, 1200))
-pygame.display.set_caption('Danger dudes SERVER')
-pygame.mouse.set_visible(1)
+screen = None
 
 def load_image(name, colorkey=None):
     fullname = os.path.join('data', name)
@@ -54,7 +51,9 @@ class ddserver(Protocol):
     _objects = {}
     _width = 0
     _height = 0
-    running = True
+    running = False
+
+    showView = True
 	
     _outPort = None
 	
@@ -138,6 +137,11 @@ class ddserver(Protocol):
    
     #This function needs to be fixed
     def init(self,width,height):
+        if(self.showView):
+            pygame.init()
+            screen = pygame.display.set_mode((1200, 1200))
+            pygame.display.set_caption('Danger dudes SERVER')
+            pygame.mouse.set_visible(1)
         self._width =width
         self._height=height
         self._world={}
@@ -151,10 +155,11 @@ class ddserver(Protocol):
         c=count()
         for i in range(1,height,int(height/10)):
            # break
-            stone=Stone()
+            stone=Stone(self.showView)
             stone.x=1
             stone.y=i
-            stone.updateSpritePos()
+            if(self.showView):
+                stone.updateSpritePos()
             stone.size=75
             stone.id=c.next()
             self._world[(stone.x,stone.y)]=stone.id
@@ -162,10 +167,11 @@ class ddserver(Protocol):
 
         for i in range(1,height,int(height/10)):
            # break
-            stone=Stone()
+            stone=Stone(self.showView)
             stone.x=self._width-1
             stone.y=i
-            stone.updateSpritePos()
+            if(self.showView):
+                stone.updateSpritePos()
             stone.size=75
             stone.id=c.next()
             self._world[(stone.x,stone.y)]=stone.id
@@ -174,10 +180,11 @@ class ddserver(Protocol):
 
         for i in range(1,width,int(width/10)):
            # break
-            stone=Stone()
+            stone=Stone(self.showView)
             stone.x=i
             stone.y=self._height-1
-            stone.updateSpritePos()
+            if(self.showView):
+                stone.updateSpritePos()
             stone.size=75
             stone.id=c.next()
             self._world[(stone.x,stone.y)]=stone.id
@@ -185,10 +192,11 @@ class ddserver(Protocol):
             
         for i in range(1,width,int(width/10)):
            # break
-            stone=Stone()
+            stone=Stone(self.showView)
             stone.x=i
             stone.y=1
-            stone.updateSpritePos()
+            if(self.showView):
+                stone.updateSpritePos()
             stone.size=75
             stone.id=c.next()
             self._world[(stone.x,stone.y)]=stone.id
@@ -196,7 +204,7 @@ class ddserver(Protocol):
 
              
     def connect(self,id):
-        obj = Player()
+        obj = Player(self.showView)
         obj.id=id
         obj.lastsent=""
         obj.add(self.allsprites)
@@ -363,18 +371,20 @@ class ddserver(Protocol):
            # err("\nObj: x:"+ str(obj.x)+' y:'+str(obj.y)+' id:'+str(obj.id))
     
 if __name__ == "__main__":
-    background = pygame.Surface(screen.get_size())
-    background = background.convert()
-    background.fill((255, 255, 255))
-    screen.blit(background, (0, 0))
-    pygame.display.flip()
-
     proto = ddserver()
+    background = None
+    if(proto.showView and screen != None):
+        background = pygame.Surface(screen.get_size())
+        background = background.convert()
+        background.fill((255, 255, 255))
+        screen.blit(background, (0, 0))
+        pygame.display.flip()
     proto.init(1000,1000)
-    proto.updateSprites()
+    if(proto.showView):
+        proto.updateSprites()
     proto.startListener()
     x=0
-    msg("starting loop")
+    #msg("starting loop")
     clock = pygame.time.Clock()
     while(proto.running == True):
         clock.tick(15)
@@ -383,8 +393,9 @@ if __name__ == "__main__":
         if x>5:
             proto.tic(True)
             proto.updateSprites()
-            proto.draw()
-            #msg("draw success")
+            if(proto.showView):
+                proto.draw()
+                #msg("draw success")
             x=0
         else:
             proto.tic(False)
