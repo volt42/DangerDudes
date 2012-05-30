@@ -46,7 +46,7 @@ class ddserver(Protocol):
 		
     def listener(self):
         self.run(Port(use_stdio=True))
-
+    
     def send(self,id,info):
         if self._outPort:
             x=info.splitlines()
@@ -54,13 +54,12 @@ class ddserver(Protocol):
                 part=""
                 for i in xrange(0,7):
                     part+=x[i]+'\n'
-                err(str(part))
+                #err(str(part))
                 self._outPort.write([id,part])
                 part="CONTINUE\n"
                 for i in xrange(7,len(x)):
                     part+=x[+i]+'\n'
-                time.sleep(0.025)
-                self.send(id,part)
+                self.threadsendaftersleep(id,part,0.025)
                 return True
 #            err('Send id: '+str(id))
 #            err('Message Length: '+str(len(str(info))))
@@ -70,7 +69,14 @@ class ddserver(Protocol):
             self._outPort.write([id,info])
             return True
 
+    def threadsendaftersleep(self,id,info,time):
+        t=threading.Thread(target=self.sendaftersleep, args=(id,info,time,))
+        t.start()
 
+    def sendaftersleep(self,id,info,t):
+        time.sleep(t)
+        self.send(id,info)
+    
     def sendworldinfo(self,target,x,y):
         send_to_client(self.worldinfo(x,y,200,200))
 
@@ -161,6 +167,7 @@ class ddserver(Protocol):
     def connect(self,id):
         obj = Player()
         obj.id=id
+        obj.size=50
         obj.lastsent=""
         self._objects[id]=obj
         if not self._objects.has_key(obj.id):
@@ -202,7 +209,7 @@ class ddserver(Protocol):
         return False
                     
     def setaction(self,id,action):
-        err("Setting new action: "+str(id)+' '+str(action))
+       # err("Setting new action: "+str(id)+' '+str(action))
         if not self._objects.has_key(id):
             return False
         self._objects[id].setCmd(action)
@@ -331,7 +338,7 @@ if __name__ == "__main__":
     while(proto.running == True):
         t=time.time()
         t+=0.02-time.time()
-        if x>5:
+        if x>3:
             proto.tic(True)
             x=0
         else:

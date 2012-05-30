@@ -159,8 +159,8 @@ class ddclient(Protocol):
             elif stone.isStone(i):
 
                 stone.fromString(i)
-                if stone.x>200 or stone.y>200:
-                    err("BAD stone: "+stone.toString())
+               # if stone.x>200 or stone.y>200:
+                #    err("BAD stone: "+stone.toString())
                 obj=Block(stone.x,stone.y,stone.image)
 
             elif bomb.isBomb(i):
@@ -171,6 +171,14 @@ class ddclient(Protocol):
                 msg("handle_worldinfo got some crap:\n"+i)
                 continue
             obj.add(self.allsprites)
+
+            background = pygame.Surface(screen.get_size())
+            background = background.convert()
+            background.fill((255, 255, 255))
+        screen.blit(background, (0, 0)) 
+        client.allsprites.draw(screen)
+        pygame.display.flip()
+
        # err(str(world))
        
 class listener(Thread):
@@ -183,16 +191,12 @@ class listener(Thread):
         self._client.run(Port(use_stdio=True))
 
 def main():  
-    background = pygame.Surface(screen.get_size())
-    background = background.convert()
-    background.fill((255, 255, 255))
-    screen.blit(background, (0, 0))
-    pygame.display.flip()
+
 
     clock = pygame.time.Clock()
 
     while True:
-        clock.tick(15)
+        clock.tick(50)
         
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -219,9 +223,9 @@ def main():
                 pass
                # msg(str(pygame.mouse.get_pos()))
     
-        screen.blit(background, (0, 0)) 
-        client.allsprites.draw(screen)
-        pygame.display.flip()
+ #       screen.blit(background, (0, 0)) 
+ #       client.allsprites.draw(screen)
+ #       pygame.display.flip()
 
         cursorPos = pygame.mouse.get_pos()
         cursorX = cursorPos[0]
