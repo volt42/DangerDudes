@@ -24,7 +24,7 @@ class Player(Gameobj):
 
     def isPlayer(self,str):
         s=str.split(' ')
-        if not s[0]=='PLAYER':
+        if not s[0]=='P':
             return False
         return True
     def validCmd(self,cmd):
@@ -65,7 +65,7 @@ class Player(Gameobj):
         return 'FIRE'
 
     def toString(self,xoffset=0,yoffset=0):
-        value=self.type+' '
+        value='P '
         value+=str(self.id)+' '
         value+=str(self.x-xoffset)+' '
         value+=str(self.y-yoffset)+' '
@@ -79,7 +79,7 @@ class Player(Gameobj):
             if not self.isPlayer(string):
                 return False
             d=string.split(' ')
-            self.type=d[0]
+            self.type='PLAYER'
             self.id =int(d[1]) 
             self.x =int(d[2]) 
             self.y =int(d[3]) 
@@ -103,12 +103,12 @@ class Bomb(Gameobj):
 
     def isBomb(self,str):
         s=str.split(' ')
-        if not s[0]=='BOMB':
+        if not s[0]=='B':
             return False
         return True
 
     def toString(self):
-        value=self.type+' '
+        value='B '
         value+=str(self.id)+' '
         value+=str(self.x)+' '
         value+=str(self.y)+' '
@@ -117,9 +117,10 @@ class Bomb(Gameobj):
         return value
 
     def fromString(self,string):
-        s=string.split(' ')
-        if not s[0] == self.type:
+        if not self.isBomb(string):
             msg("bomb.fromString got something that was not a bomb:\n"+string)
+        s=string.split(' ')
+        self.type='BOMB'
         self.id = int(s[1])
         self.x = int(s[2])
         self.y = int(s[3])
@@ -134,12 +135,12 @@ class Stone(Gameobj):
 
     def isStone(self,str):
         s=str.split(' ')
-        if not s[0]=='STONE':
+        if not s[0]=='S':
             return False
         return True
 
     def toString(self, xoffset=0, yoffset=0):
-        value=self.type+' '
+        value='S '
         value+=str(self.id)+' '
         value+=str(self.x-xoffset)+' '
         value+=str(self.y-yoffset)+' '
@@ -149,7 +150,7 @@ class Stone(Gameobj):
 
     def fromString(self,string):
         s=string.split(' ')
-        if not s[0] == self.type:
+        if not s[0] == 'S':
             msg("stone.fromString got something that was not a stone:\n"+string)
         self.id = int(s[1])
         self.x = int(s[2])

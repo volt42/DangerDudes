@@ -10,9 +10,9 @@ def msg(message):
     root.mainloop()
 
 def err(string):
-    sys.stderr.write('Py: '+str(string)+'\n')
+    sys.stderr.write('Py: '+str(string)+'|-')
 def exc(string,exception="unspecified" ):
-    sys.stderr.write('PyException: '+str(exception)+': '+str(string)+'\n')
+    sys.stderr.write('PyException: '+str(exception)+': '+str(string)+'|-')
 
 class popup():
     _msg =""    

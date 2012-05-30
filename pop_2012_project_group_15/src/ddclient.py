@@ -122,6 +122,7 @@ class Block(pygame.sprite.Sprite):
         pass
         
 class ddclient(Protocol):
+    _objects={}
     _port = None
     _hero = DD(200,200)
     allsprites = pygame.sprite.RenderPlain(_hero)
@@ -137,50 +138,66 @@ class ddclient(Protocol):
             self.handle_worldinfo(message[1])
 
     def handle_worldinfo(self,worldinfo):
-  #      msg("Client.worldinfo: "+String(worldinfo))
+       # msg("Client.worldinfo: "+String(worldinfo))
         world=String(worldinfo).splitlines()
-        if not world[0]=='CONTINUE':
-            self.allsprites.empty()
-#            self._hero.add(self.allsprites)
 
+        
     
         player=Player()
         stone=Stone()
         bomb=Bomb()
  
-       # err(str(world))
-        for i in world:        
+        err("Number of rows received: "+str(len(world)))
+        for i in world:  
             if i=='CONTINUE':
                 continue
-            if player.isPlayer(i):
-                player.fromString(i)
-                obj=DD(player.x,player.y)                
-                
+            if str(i.split(' ')[0])=='MVWORLD':
+                s=i.split(' ')
+                dx=int(s[1])
+                dy=int(s[2])
+                for i in self._objects.keys():
+                    self._objects[i].x+=dx
+                    self._objects[i].y+=dy
+                    if not (0 < self._objects[i].x <400 or 0 < self._objects[i].y <400):
+                        self._objects.pop(i)
+            elif player.isPlayer(i):
+                p=Player()
+                p.fromString(i)
+                self._objects[p.id]=p
             elif stone.isStone(i):
-
-                stone.fromString(i)
-               # if stone.x>200 or stone.y>200:
-                #    err("BAD stone: "+stone.toString())
-                obj=Block(stone.x,stone.y,stone.image)
-
+                s=Stone()
+                s.fromString(i)
+#                err("got stone: "+stone.toString())
+ #               err("from : "+ str(i))
+                self._objects[s.id]=s
             elif bomb.isBomb(i):
-                bomb.fromString(i)
-                #Change this obj!
-                obj=DD(bomb.x,bomb.y)
+                b=Bomb()
+                b.fromString(i)
+                self._objects[b.id]=b
             else:
-                msg("handle_worldinfo got some crap:\n"+i)
+                msg("handle_worldinfo got some crap:\n"+i+str(i.split(' ')))
                 continue
+        self.pyprint()
+
+    def pyprint(self):
+        self.allsprites.empty()
+        background = pygame.Surface(screen.get_size())
+        background = background.convert()
+        background.fill((255, 255, 255))
+        
+        for i in self._objects.keys():
+            if self._objects[i].type=='PLAYER':
+                obj=DD(self._objects[i].x,self._objects[i].y)
+            if self._objects[i].type=='STONE':
+                obj=Block(self._objects[i].x,self._objects[i].y,self._objects[i].image)
+            if self._objects[i].type=='BOMB':
+                obj=DD(self._objects[i].x,self._objects[i].y)                
             obj.add(self.allsprites)
 
-            background = pygame.Surface(screen.get_size())
-            background = background.convert()
-            background.fill((255, 255, 255))
         screen.blit(background, (0, 0)) 
         client.allsprites.draw(screen)
         pygame.display.flip()
-
-       # err(str(world))
-       
+               
 class listener(Thread):
     _client = None
     def __init__(self, client):
@@ -223,9 +240,7 @@ def main():
                 pass
                # msg(str(pygame.mouse.get_pos()))
     
- #       screen.blit(background, (0, 0)) 
- #       client.allsprites.draw(screen)
- #       pygame.display.flip()
+ 
 
         cursorPos = pygame.mouse.get_pos()
         cursorX = cursorPos[0]

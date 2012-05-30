@@ -35,9 +35,9 @@ class ddserver(Protocol):
     _width = 0
     _height = 0
     running = True
-	
+    _lastsent ={}
     _outPort = None
-	
+    
     #Outgoing functions
     def startListener(self):
         listen = threading.Thread(target=self.listener)
@@ -52,22 +52,59 @@ class ddserver(Protocol):
             x=info.splitlines()
             if(len(x)>7):
                 part=""
-                for i in xrange(0,7):
+                for i in xrange(0,8):
                     part+=x[i]+'\n'
                 #err(str(part))
                 self._outPort.write([id,part])
                 part="CONTINUE\n"
-                for i in xrange(7,len(x)):
+                for i in xrange(8,len(x)):
                     part+=x[+i]+'\n'
                 self.threadsendaftersleep(id,part,0.025)
                 return True
-#            err('Send id: '+str(id))
-#            err('Message Length: '+str(len(str(info))))
-#            if(len(str(info)) >255):
-#                err("to much data "+str(len(str(info))))
-#                return False
             self._outPort.write([id,info])
             return True
+
+    def mvworld(self,world,x,y):
+        value={}
+        for i in world.keys():
+            value[(i[0]+x,i[1]+y)]=world[i]
+        return value
+
+    def sendtoplayer(self,id):
+        lastx=self._lastsent[id][1]
+        lasty=self._lastsent[id][2]
+        curr=self._objects[id]
+        currentworld=self.worldinfo(curr.x-200,curr.y-200,400,400)
+        lastworld=self._lastsent[id][0]
+        if lastworld==currentworld:
+            return True
+
+        sendinfo=""
+        
+        #compare to the moved version of the old world if appropriate
+        if not (curr.x == lastx and curr.y==lasty):
+            sendinfo+='MVWORLD '+str(lastx-curr.x)+' '+str(lasty-curr.y)+'\n'
+            lastworld=self.mvworld(lastworld,lastx,lasty)
+          #  err('lastworld: '+str(lastworld))
+          #  err('currentworld ' +str(currentworld))
+            if lastworld==currentworld:
+                return self.send(id,sendinfo)
+           # msg(sendinfo)
+
+        self._lastsent[id][0]={}
+        self._lastsent[id][1]=curr.x
+        self._lastsent[id][2]=curr.y
+        for i in currentworld.keys():
+            if lastworld.has_key(i):
+                if not currentworld[i]==lastworld[i]:
+                    sendinfo+=self._objects[currentworld[i]].toString()
+                self._lastsent[id][0][i]=currentworld[i]
+            else:
+                sendinfo+=self._objects[currentworld[i]].toString(curr.x-200,curr.y-200)
+       # err("setting lastsent:  "+str(currentworld))
+        self._lastsent[id][0]=currentworld
+   #     err("||"+sendinfo)
+        return self.send(id,sendinfo)
 
     def threadsendaftersleep(self,id,info,time):
         t=threading.Thread(target=self.sendaftersleep, args=(id,info,time,))
@@ -168,7 +205,6 @@ class ddserver(Protocol):
         obj = Player()
         obj.id=id
         obj.size=50
-        obj.lastsent=""
         self._objects[id]=obj
         if not self._objects.has_key(obj.id):
             return False
@@ -179,6 +215,7 @@ class ddserver(Protocol):
                 self._world[(x,y)]=obj.id
                 self._objects[obj.id].x=x
                 self._objects[obj.id].y=y
+                self._lastsent[id]=[{},x,y]
                 return obj.id
         return False
     
@@ -262,20 +299,21 @@ class ddserver(Protocol):
 
     def world(self):
         return self._world
-
+ 
+    def worldtostring(self,world):
+        returnvalue=""
+        for i in world.keys():
+            returnvalue+=self._objects[self._world[i]].toString()
+        return returnvalue
+        
     def subworld(self,x,y,width,height):
         values=self.worldinfo(x,y,width,height)
-#        err(str(values));
-#        err("||||||||||\n")
-#        err(str(self.worldinfo))
-#        err("---------\n")
         returnvalue=""
         for i in values.keys():
             returnvalue+=self._objects[self._world[i]].toString(x,y)
-   #     err(str(self._objects))
-   #     err(returnvalue)
         return returnvalue
-            
+
+    
     def worldinfo(self,x,y,width,height):
         value={}
 
@@ -321,14 +359,13 @@ class ddserver(Protocol):
             obj=self._objects[i]
 
             if obj.type == "PLAYER":
+                #MOVE EXECUTE ACTION UP ONE level!
                 self.executeaction(self._objects[i].id)
                 if send==True:
-                    x=self.subworld(obj.x-200,obj.y-200,400,400)
-                    if not x==self._objects[i].lastsent:
-                        self._objects[i].lastsent=x
-                        self.send(obj.id,x)
-           # err("\nSubworld: " +self.subworld(obj.x-200,obj.y-200,400,400))
-           # err("\nObj: x:"+ str(obj.x)+' y:'+str(obj.y)+' id:'+str(obj.id))
+                    self.sendtoplayer(i)
+                else:
+                    pass
+#                    self.send(i,self.subworld(self._objects[i].x-200,self._objects[i].y-200,400,400))
     
 if __name__ == "__main__":
     proto = ddserver()
@@ -338,7 +375,7 @@ if __name__ == "__main__":
     while(proto.running == True):
         t=time.time()
         t+=0.02-time.time()
-        if x>3:
+        if x>2:
             proto.tic(True)
             x=0
         else:
