@@ -100,7 +100,7 @@ class ddserver(Protocol):
 #            if(len(str(info)) >255):
 #                err("to much data "+str(len(str(info))))
 #                return False
-            self._outPort.write([id,info])
+            self._outPort.write([id,info+'END'])
             return True
 
     def threadsendaftersleep(self,id,info,time):

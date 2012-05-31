@@ -179,15 +179,17 @@ class ddclient(Protocol):
                 bomb.fromString(i)
                 #Change this obj!
                 obj=DD(bomb.x,bomb.y)
+            elif i=='END':
+                screen.blit(background, (0, 0)) 
+                client.allsprites.draw(screen)
+                pygame.display.flip()
             else:
-                msg("handle_worldinfo got some crap:\n"+i)
+                err("handle_worldinfo got some crap:\n"+i)
                 continue
             obj.add(self.allsprites)
 
 
-        screen.blit(background, (0, 0)) 
-        client.allsprites.draw(screen)
-        pygame.display.flip()
+
 
        # err(str(world))
        
