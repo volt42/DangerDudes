@@ -27,12 +27,11 @@ class Gameobj(pygame.sprite.Sprite):
     imageId=1
     action='IDLE'
 
-    def updateSpritePos(self):
-        self.rect.topleft = self.x, self.y  
-
     def getCmd(self):
         pass
-    
+
+    def updateSpritePos(self):
+        self.rect.topleft = self.x, self.y    
 
 class Player(Gameobj):
     health=100
@@ -43,9 +42,9 @@ class Player(Gameobj):
 
     def __init__(self, loadImage=False):
         name = "dd.bmp"
-        if(loadImage):    
-            pygame.sprite.Sprite.__init__(self)
-            self.image, self.rect = load_image(name, (255,255,255))
+            
+        pygame.sprite.Sprite.__init__(self)
+        self.image, self.rect = load_image(name, (255,255,255))
 
     def isPlayer(self,str):
         s=str.split(' ')
@@ -156,7 +155,6 @@ class Stone(Gameobj):
     size=50
     imageId=1
     type='STONE'
-
     def __init__(self, loadImage=False):
         name = "block_circle.bmp"
         if(loadImage):    
@@ -187,6 +185,7 @@ class Stone(Gameobj):
         self.y = int(s[3])
         self.health = int(s[4])
         self.imageId = int(s[5])
+        self.rect.topleft = self.x, self.y
 
 
 

@@ -53,10 +53,10 @@ class ddserver(Protocol):
     _height = 0
     running = True
 
-    showView = True
-
+    showView = False
+	
     _outPort = None
-
+	
     allsprites = pygame.sprite.RenderPlain()
 
     def updateSprites(self):
@@ -78,7 +78,7 @@ class ddserver(Protocol):
 		
     def listener(self):
         self.run(Port(use_stdio=True))
-    
+
     def send(self,id,info):
         if self._outPort:
             x=info.splitlines()
@@ -86,12 +86,13 @@ class ddserver(Protocol):
                 part=""
                 for i in xrange(0,7):
                     part+=x[i]+'\n'
-                #err(str(part))
+                err(str(part))
                 self._outPort.write([id,part])
                 part="CONTINUE\n"
                 for i in xrange(7,len(x)):
                     part+=x[+i]+'\n'
-                self.threadsendaftersleep(id,part,0.025)
+                time.sleep(0.025)
+                self.send(id,part)
                 return True
 #            err('Send id: '+str(id))
 #            err('Message Length: '+str(len(str(info))))
@@ -101,14 +102,7 @@ class ddserver(Protocol):
             self._outPort.write([id,info])
             return True
 
-    def threadsendaftersleep(self,id,info,time):
-        t=threading.Thread(target=self.sendaftersleep, args=(id,info,time,))
-        t.start()
 
-    def sendaftersleep(self,id,info,t):
-        time.sleep(t)
-        self.send(id,info)
-    
     def sendworldinfo(self,target,x,y):
         send_to_client(self.worldinfo(x,y,200,200))
 
@@ -130,7 +124,7 @@ class ddserver(Protocol):
 
     #does no collision detection
     def addStone(self, x, y, size):
-        obj = Stone(self.showView)
+        obj = Stone()
         obj.x = x
         obj.y = y
         obj.image = random.randint(1,3)
@@ -143,6 +137,11 @@ class ddserver(Protocol):
    
     #This function needs to be fixed
     def init(self,width,height):
+        #if(self.showView):
+        #    pygame.init()
+        #    screen = pygame.display.set_mode((1200, 1200))
+        #    pygame.display.set_caption('Danger dudes SERVER')
+        #    pygame.mouse.set_visible(1)
         self._width =width
         self._height=height
         self._world={}
@@ -202,15 +201,13 @@ class ddserver(Protocol):
             stone.id=c.next()
             self._world[(stone.x,stone.y)]=stone.id
             self._objects[stone.id]=stone
-        if(self.showView):
-            self.updateSprites()
 
              
     def connect(self,id):
         obj = Player(self.showView)
         obj.id=id
-        obj.size=50
         obj.lastsent=""
+        obj.add(self.allsprites)
         self._objects[id]=obj
         if not self._objects.has_key(obj.id):
             return False
@@ -221,9 +218,6 @@ class ddserver(Protocol):
                 self._world[(x,y)]=obj.id
                 self._objects[obj.id].x=x
                 self._objects[obj.id].y=y
-                if(self.showView):
-                    obj.updateSpritePos()
-                    obj.add(self.allsprites)
                 return obj.id
         return False
     
@@ -254,7 +248,7 @@ class ddserver(Protocol):
         return False
                     
     def setaction(self,id,action):
-       # err("Setting new action: "+str(id)+' '+str(action))
+        err("Setting new action: "+str(id)+' '+str(action))
         if not self._objects.has_key(id):
             return False
         self._objects[id].setCmd(action)
@@ -271,8 +265,6 @@ class ddserver(Protocol):
             self._objects[id].x=x
             self._objects[id].y=y
             self._world[(x,y)] =id
-            if(self.showView):
-                self._objects[id].updateSpritePos()
             return True
         return False
         
@@ -281,8 +273,6 @@ class ddserver(Protocol):
         if(self.collision(obj,obj.x,obj.y) == False):
             self._world[(obj.x,obj.y)] = obj.id
             self._objects[obj.id]=obj
-            if(self.showView):
-                obj.add(self.allsprites)
             return True
         return False
 
@@ -376,8 +366,7 @@ class ddserver(Protocol):
                     if not x==self._objects[i].lastsent:
                         self._objects[i].lastsent=x
                         self.send(obj.id,x)
-        if(self.showView):
-            self.draw()
+        #self.draw()
            # err("\nSubworld: " +self.subworld(obj.x-200,obj.y-200,400,400))
            # err("\nObj: x:"+ str(obj.x)+' y:'+str(obj.y)+' id:'+str(obj.id))
     
@@ -395,13 +384,23 @@ if __name__ == "__main__":
         screen.blit(background, (0, 0))
         pygame.display.flip()
     proto.init(1000,1000)
+    if(proto.showView):
+        proto.updateSprites()
     proto.startListener()
     x=0
+    #msg("starting loop")
+    clock = pygame.time.Clock()
     while(proto.running == True):
+        clock.tick(15)
         t=time.time()
         t+=0.02-time.time()
-        if x>3:
+        if x>5:
             proto.tic(True)
+
+            if(proto.showView):
+                proto.updateSprites()
+                proto.draw()
+                #msg("draw success")
             x=0
         else:
             proto.tic(False)

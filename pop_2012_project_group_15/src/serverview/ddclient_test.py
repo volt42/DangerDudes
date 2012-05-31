@@ -107,11 +107,11 @@ class DD(pygame.sprite.Sprite):
         
         
 class Block(pygame.sprite.Sprite):
-    def __init__(self, x, y, image):
+    def __init__(self, x, y, imageId):
         name = "dd.bmp"
-        if image == 1:
+        if imageId == 1:
             name = "block_circle.bmp"
-        elif image == 2:
+        elif imageId == 2:
             name = "block_square.bmp"
             
         pygame.sprite.Sprite.__init__(self)
@@ -128,6 +128,7 @@ class ddclient(Protocol):
 
     def sendRequest(self,action):
         if self._port:
+            #msg("sending: " + str(action))
             self._port.write(action)
         
     def handle(self, port, message):
@@ -159,8 +160,8 @@ class ddclient(Protocol):
             elif stone.isStone(i):
 
                 stone.fromString(i)
-               # if stone.x>200 or stone.y>200:
-                #    err("BAD stone: "+stone.toString())
+                if stone.x>200 or stone.y>200:
+                    err("BAD stone: "+stone.toString())
                 obj=Block(stone.x,stone.y,stone.imageId)
 
             elif bomb.isBomb(i):
@@ -171,14 +172,6 @@ class ddclient(Protocol):
                 msg("handle_worldinfo got some crap:\n"+i)
                 continue
             obj.add(self.allsprites)
-
-            background = pygame.Surface(screen.get_size())
-            background = background.convert()
-            background.fill((255, 255, 255))
-        screen.blit(background, (0, 0)) 
-        client.allsprites.draw(screen)
-        pygame.display.flip()
-
        # err(str(world))
        
 class listener(Thread):
@@ -191,12 +184,16 @@ class listener(Thread):
         self._client.run(Port(use_stdio=True))
 
 def main():  
-
+    background = pygame.Surface(screen.get_size())
+    background = background.convert()
+    background.fill((255, 255, 255))
+    screen.blit(background, (0, 0))
+    pygame.display.flip()
 
     clock = pygame.time.Clock()
 
     while True:
-        clock.tick(50)
+        clock.tick(15)
         
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -223,9 +220,9 @@ def main():
                 pass
                # msg(str(pygame.mouse.get_pos()))
     
- #       screen.blit(background, (0, 0)) 
- #       client.allsprites.draw(screen)
- #       pygame.display.flip()
+        screen.blit(background, (0, 0)) 
+        client.allsprites.draw(screen)
+        pygame.display.flip()
 
         cursorPos = pygame.mouse.get_pos()
         cursorX = cursorPos[0]

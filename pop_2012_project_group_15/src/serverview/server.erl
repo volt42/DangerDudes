@@ -32,11 +32,12 @@ newClient(Socket, Id, {PyPort, OutPid}) ->
 
 						% Echo back whatever data we receive on Socket.
 inLoop(Socket, Id, Pyserver) ->
+	io:put_chars("erl: Listening for incomming data\n"),
     case gen_tcp:recv(Socket, 0) of
 	{ok, Data} ->
 						%OK, now send this shit to python
 	    forwardIn(Pyserver, [data, Id, Data]),
-%	    io:put_chars("erl: Someting arrived\n"),
+	    io:put_chars("erl: Someting arrived\n"),
 %	    io:write(Data),
 %	    io:put_chars("\n-----------\n"),
 	    inLoop(Socket,Id, Pyserver);

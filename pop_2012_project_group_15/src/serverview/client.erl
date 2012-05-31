@@ -59,7 +59,7 @@ runOut(SenderPort, OutSocket) ->
 
     receive
         {SenderPort, {data, Binary}} ->
-%	    io:put_chars("erl: Python wants to send data!\n"),
+	    io:put_chars("erl: Python wants to send data!\n"),
 %	    io:write(binary_to_term(Binary)),
 %	    io:put_chars("\n"),
 	    forwardOut(OutSocket, binary_to_term(Binary)),
