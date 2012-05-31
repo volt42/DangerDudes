@@ -30,6 +30,7 @@ import threading,sys, dbmsg
 from dbmsg import err, exc, msg
 
 screen = None
+background = None
 
 def load_image(name, colorkey=None):
     fullname = os.path.join('data', name)
@@ -383,7 +384,6 @@ class ddserver(Protocol):
     
 if __name__ == "__main__":
     proto = ddserver()
-    background = None
     if(proto.showView):
         pygame.init()
         screen = pygame.display.set_mode((1200, 1200))
