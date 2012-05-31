@@ -27,6 +27,9 @@ pygame.init()
 screen = pygame.display.set_mode((400, 400))
 pygame.display.set_caption('Danger dudes')
 pygame.mouse.set_visible(1)
+background = pygame.Surface(screen.get_size())
+background = background.convert()
+background.fill((255, 255, 255))
 
 def load_image(name, colorkey=None):
     fullname = os.path.join('data', name)
@@ -125,10 +128,19 @@ class ddclient(Protocol):
     _port = None
     _hero = DD(200,200)
     allsprites = pygame.sprite.RenderPlain(_hero)
+    mleft=0
+    mright=0
+    mdown=0
+    mup=0
 
     def sendRequest(self,action):
         if self._port:
-            self._port.write(action)
+            if action == 'MOVE':
+                ud=2*(self.mup-self.mdown)
+                rl=2*(self.mright-self.mleft)
+                self._port.write("MOVE "+str(rl)+' '+str(ud))
+            else:
+                self._port.write(action)
         
     def handle(self, port, message):
         if(Atom(message[0]) == "init"):
@@ -172,9 +184,7 @@ class ddclient(Protocol):
                 continue
             obj.add(self.allsprites)
 
-            background = pygame.Surface(screen.get_size())
-            background = background.convert()
-            background.fill((255, 255, 255))
+
         screen.blit(background, (0, 0)) 
         client.allsprites.draw(screen)
         pygame.display.flip()
@@ -204,21 +214,29 @@ def main():
             elif event.type == KEYDOWN and event.key == K_ESCAPE:
                 return
             elif event.type == KEYDOWN and event.key == K_UP:
-                client.sendRequest('MOVE 0 2')
+                client.mup=1
+                client.sendRequest('MOVE')
             elif event.type == KEYDOWN and event.key == K_RIGHT:
-                client.sendRequest('MOVE 2 0')
+                client.mright=1
+                client.sendRequest('MOVE')
             elif event.type == KEYDOWN and event.key == K_DOWN:
-                client.sendRequest('MOVE 0 -2')
+                client.mdown=1
+                client.sendRequest('MOVE')
             elif event.type == KEYDOWN and event.key == K_LEFT:
-                client.sendRequest('MOVE -2 0')
+                client.mleft=1
+                client.sendRequest('MOVE')
             elif event.type == KEYUP and event.key == K_UP:
-                client.sendRequest('MOVE 0 0')
+                client.mup=0
+                client.sendRequest('MOVE')
             elif event.type == KEYUP and event.key == K_RIGHT:
-                client.sendRequest('MOVE 0 0')
+                client.mright=0
+                client.sendRequest('MOVE')
             elif event.type == KEYUP and event.key == K_DOWN:
-                client.sendRequest('MOVE 0 0')
+                client.mdown=0
+                client.sendRequest('MOVE')
             elif event.type == KEYUP and event.key == K_LEFT:
-                client.sendRequest('MOVE 0 0')
+                client.mleft=0
+                client.sendRequest('MOVE')
             elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 pass
                # msg(str(pygame.mouse.get_pos()))

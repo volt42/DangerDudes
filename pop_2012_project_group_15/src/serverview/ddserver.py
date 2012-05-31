@@ -54,6 +54,7 @@ class ddserver(Protocol):
     _height = 0
     running = True
 
+
     showView = True
 
     _outPort = None
@@ -155,7 +156,7 @@ class ddserver(Protocol):
                 self.x+=1
                 return self.x
         c=count()
-        for i in range(1,height,int(height/10)):
+        for i in range(1,height,int(height/30)):
            # break
             stone=Stone(self.showView)
             stone.x=1
@@ -167,7 +168,7 @@ class ddserver(Protocol):
             self._world[(stone.x,stone.y)]=stone.id
             self._objects[stone.id]=stone
 
-        for i in range(1,height,int(height/10)):
+        for i in range(1,height,int(height/30)):
            # break
             stone=Stone(self.showView)
             stone.x=self._width-1
@@ -180,7 +181,7 @@ class ddserver(Protocol):
             self._objects[stone.id]=stone
 
 
-        for i in range(1,width,int(width/10)):
+        for i in range(1,width,int(width/30)):
            # break
             stone=Stone(self.showView)
             stone.x=i
@@ -192,7 +193,7 @@ class ddserver(Protocol):
             self._world[(stone.x,stone.y)]=stone.id
             self._objects[stone.id]=stone
             
-        for i in range(1,width,int(width/10)):
+        for i in range(1,width,int(width/30)):
            # break
             stone=Stone(self.showView)
             stone.x=i
